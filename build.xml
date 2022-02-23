@@ -51,7 +51,7 @@
 	<target name="jcc" depends="init"> 
 	  	<!-- Generar el código fuente del traductor desde ${src_compiler} hasta ${jcc_files} -->
 	  	<javacc target="${jcc_src}/${project}.jj"
-	      	javacchome="/home/ezpeleta/aplicaciones/javacc/target"
+	      	javacchome="/home/jorge/javacc/target"
 	      	outputdirectory="${jcc_files}"
 	      	static="true"
 	  	/>
@@ -66,7 +66,7 @@
 	      	<compilerarg value="-Xlint:-unchecked"/>
 	  	</javac>
 	</target>
-
+	
 	<!-- Crear el jar con todo en ${dist} -->
 	<target name="dist" depends="compile">
 		<manifest file="${build_META_INF}/MANIFEST.MF" >

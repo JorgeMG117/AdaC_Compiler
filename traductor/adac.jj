@@ -32,32 +32,119 @@ public class adac {
 		} catch (TokenMgrError e) {
         	System.err.println("LEX_ERROR: " + e.getMessage());
         } 
+		catch (ParseException e){
+			System.err.println("PARSE_ERROR: " + e.getMessage());
+		}
     }
 }
 PARSER_END(adac)
+
+TOKEN_MGR_DECLS:
+{
+	static void informacion(Token t, String tipo){
+		System.out.println("(" + t.beginLine + "," + t.beginColumn + "): " + tipo + " \"" + t.image + "\"");
+	}
+}
+
+
 //------------ descripción del AL
 SKIP :
 {
-   ...
+  	" "
+|	"\t"
+|	"\n"
+|	"\r"
 }
+
+SPECIAL_TOKEN :
+{
+  <SINGLE_LINE_COMMENT: "--" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+}
+
+
+
+//<WithinComment> SKIP :
+//{
+// "\n" : DEFAULT
+//}
+
+
 
 TOKEN :
 {
  	< #LETTER: (["a"-"z","A"-"Z"]) >
 |	< #DIGIT: ["0"-"9"] >
-|   ...
-}
 
+}
+//TokenManagerdecs
 TOKEN :
 {
  	< tBEGIN: "begin" >
  		{
  			//mostrar la información pedida
+			informacion(matchedToken, "inicio funcion");
  		}
 |	< tBOOL: "boolean" >
 |	< tCHAR: "character" >
-|   ...
+|	< tINT: "integer" >
+//constantes tipos
+|	< tVENTERO: (<DIGIT>)+ >
+|	< tVCHAR: "'"<LETTER>"'" >
+|	< tTRUE: "true" >
+|	< tFALSE: "false" >
+|	< tVSTRING: "\""(~["\n","\r"])+"\"" >
+//simbolos
+|	< tCOMMA: "," >
+|	< tPCOMMA: ";" >
+|	< tSBRACKET: "(" >
+|	< tEBRACKET: ")" >
+|	< tISQBRACKET: "[" >
+|	< tESQBRACKET: "]" >
+//logica
+|	< tLESS: "<" >
+|	< tMORE: ">" >
+|	< tLESSEQ: "<=" >
+|	< tMOREEQ: ">=" >
+|	< tNOTEQ: "<>" >
+|	< tASSIGN: ":=" >
+//aritmetica
+|	< tNEG: "-" >
+|	< tPOS: "+" >
+//palabras reservadas en minusculas
+|	< tPROCEDURE: "procedure" >
+|	< tFUNCTION: "function" >
+|	< tRETURN: "return" >
+|	< tVAL: "val" >
+|	< tREF: "ref" >
+|	< tIS: "is" >
+|	< tPUT: "put" >
+|	< tPUTLINE: "put_line" >
+|	< tEND: "end" >
+|	< tIF: "if" >
+|	< tELSE: "else" >
+|	< tWHILE: "while" >
+|	< tDO: "do" >
+|	< tTHEN: "then" >
+//identificador
+//|	< tIDENTIFIER: (<LETTER> | <DIGIT> | "_")+ >
+
+//empeiza por barra y no hay dos barras
+//_(x|x_)* 
+//empieza por letra y no hay dos barras
+//y(_x|x)*_?
+
 }
+
+<Normal> TOKEN :
+{
+	"a" : DEFAULT
+}
+
+<Barra> TOKEN :
+{
+	"b" : DEFAULT
+}
+
 //------------ Símbolo inicial de la gramática. Para análisis léxico no hace falta más
 void S () : 
 {
@@ -65,7 +152,8 @@ void S () :
 }
 {
 	( 
-		< tBEGIN > | < tBOOL > | < tCHAR > | ...
+		< tBEGIN > | < tBOOL > | < tCHAR > | <tIDENTIFIER> | <tINT> | <tCOMMA> | <tPCOMMA> | 
+		<tVSTRING> | <tTRUE> | <tFALSE> | <tVCHAR> | <tVENTERO> | <tASSIGN> 
 	)+
 	< EOF >
 }
