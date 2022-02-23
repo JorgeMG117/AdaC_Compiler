@@ -74,6 +74,7 @@ TOKEN :
 {
  	< #LETTER: (["a"-"z","A"-"Z"]) >
 |	< #DIGIT: ["0"-"9"] >
+|	< #ALPHANUM: (<LETTER> | <DIGIT>) >
 
 }
 //TokenManagerdecs
@@ -85,64 +86,142 @@ TOKEN :
 			informacion(matchedToken, "inicio funcion");
  		}
 |	< tBOOL: "boolean" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "inicio funcion");
+ 		}
 |	< tCHAR: "character" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "inicio funcion");
+ 		}
 |	< tINT: "integer" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "inicio funcion");
+ 		}
 //constantes tipos
-|	< tVENTERO: (<DIGIT>)+ >
+|	< tVINT: (<DIGIT>)+ >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "constante entera");
+ 		}
 |	< tVCHAR: "'"<LETTER>"'" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "constante char");
+ 		}
 |	< tTRUE: "true" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "constante bool true");
+ 		}
 |	< tFALSE: "false" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "constante bool false");
+ 		}
 |	< tVSTRING: "\""(~["\n","\r"])+"\"" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "constante string");
+ 		}
 //simbolos
 |	< tCOMMA: "," >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "simbolo coma");
+ 		}
 |	< tPCOMMA: ";" >
-|	< tSBRACKET: "(" >
-|	< tEBRACKET: ")" >
-|	< tISQBRACKET: "[" >
-|	< tESQBRACKET: "]" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "simbolo punto y coma");
+ 		}
+|	< tSBR: "(" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "simbolo parentesis abierto");
+ 		}
+|	< tEBR: ")" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "simbolo parentesis cerrado");
+ 		}
+|	< tISQBR: "[" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "simbolo corchete abierto");
+ 		}
+|	< tESQBR: "]" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "simbolo corchete cerrado");
+ 		}
 //logica
 |	< tLESS: "<" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador mayor");
+ 		}
 |	< tMORE: ">" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador menor");
+ 		}
 |	< tLESSEQ: "<=" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador mayor o igual);
+ 		}
 |	< tMOREEQ: ">=" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador menor o igual");
+ 		}
 |	< tNOTEQ: "<>" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador igual");
+ 		}
 |	< tASSIGN: ":=" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador asignacion");
+ 		}
 //aritmetica
 |	< tNEG: "-" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador menos);
+ 		}
 |	< tPOS: "+" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador mas");
+ 		}
 //palabras reservadas en minusculas
-|	< tPROCEDURE: "procedure" >
-|	< tFUNCTION: "function" >
+|	< tPROC: "procedure" >
+|	< tFUNCT: "function" >
 |	< tRETURN: "return" >
 |	< tVAL: "val" >
 |	< tREF: "ref" >
 |	< tIS: "is" >
 |	< tPUT: "put" >
-|	< tPUTLINE: "put_line" >
+|	< tPUTL: "put_line" >
 |	< tEND: "end" >
 |	< tIF: "if" >
 |	< tELSE: "else" >
 |	< tWHILE: "while" >
 |	< tDO: "do" >
 |	< tTHEN: "then" >
-//identificador
-//|	< tIDENTIFIER: (<LETTER> | <DIGIT> | "_")+ >
+//identificador, no se si existe ?
+//|	< tID: ("_"(<ALPHANUM>|<ALPHANUM>"_")* | <LETTER>("_"<ALPHANUM>|<ALPHANUM>)*"_"?) >
 
 //empeiza por barra y no hay dos barras
 //_(x|x_)* 
 //empieza por letra y no hay dos barras
 //y(_x|x)*_?
 
-}
-
-<Normal> TOKEN :
-{
-	"a" : DEFAULT
-}
-
-<Barra> TOKEN :
-{
-	"b" : DEFAULT
 }
 
 //------------ Símbolo inicial de la gramática. Para análisis léxico no hace falta más
@@ -152,8 +231,12 @@ void S () :
 }
 {
 	( 
-		< tBEGIN > | < tBOOL > | < tCHAR > | <tIDENTIFIER> | <tINT> | <tCOMMA> | <tPCOMMA> | 
-		<tVSTRING> | <tTRUE> | <tFALSE> | <tVCHAR> | <tVENTERO> | <tASSIGN> 
+	< tBEGIN > 		| < tBOOL > 	| < tCHAR > 	| < tINT> 		| < tVINT > 		| < tVCHAR > 		| < tTRUE > 
+	| < tFALSE > 	| < tVSTRING >	| < tCOMMA > 	| < tPCOMMA > 	| < tSBR > 			| < tEBR > 			| < tISQBR > 	
+	| < tESQBR > 	| < tLESS >		| < tMORE > 	| < tLESSEQ > 	| < tMOREEQ > 		| < tNOTEQ > 		| < tASSIGN > 		
+	| < tNEG >		| < tPOS > 		| < tPROC >		| < tFUNCT > 	| < tRETURN > 		| < tVAL > 			| < tREF > 		
+	| < tIS >		| < tPUT >		| < tPUTL > 	| < tEND > 		| < tIF >			| < tELSE > 		| < tWHILE > 	
+	| < tDO > 		| < tTHEN > 	| < tID >
 	)+
 	< EOF >
 }
