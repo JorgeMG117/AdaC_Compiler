@@ -1,8 +1,8 @@
 ------------------------------------------------------
 procedure seleccion_actividades is 
-integer C[], F[];
+integer C[101], F[101];
 integer i, j;
-integer A[];
+integer A[101];
 integer indice;
 integer n;
 ------------------------------------------------------
@@ -26,36 +26,36 @@ begin
 end
 
 ------------------------------------------------------
-procedure escribir_vector (ref integer A[101], val integer max) is
+procedure escribir_vector (ref integer A[101], val integer N) is
 
 integer aux;
 ------------------------------------------------------
 begin
     aux := 0;
-    while aux < max then
-        put_line(A[aux]);
+    while aux < N then
+        put_line(A[aux], ",");
     end
 end
 ------------------------------------------------------
 begin
-    n := 5
-    //get vectores
+    get(n);
+    inicilizar(C, n);
+    inicilizar(F, n);
 
     indice := 1
     A[0] := 1
     j := 1
     i:= 2
+    
 
     while i<n then
         if C[i] >= F[j] then
             A[indice] := i;
-            indice := indice + 1
-            j := i
+            indice := indice + 1;
+            j := i;
         end
     end
 
     put_line("La solución optima para el problema de la seleccion de actividades es: ");
     escribir_vector(A, n);
-
-
 end
