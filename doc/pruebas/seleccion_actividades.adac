@@ -1,0 +1,61 @@
+------------------------------------------------------
+procedure seleccion_actividades is 
+integer C[], F[];
+integer i, j;
+integer A[];
+integer indice;
+integer n;
+------------------------------------------------------
+procedure inicilizar (ref integer v[101], val integer N) is
+integer i, d;
+------------------------------------------------------
+begin
+    i := 0;
+    while i < N do
+        get (d);
+        while (d < 0)  or (d > 100) do
+            put ("Escribe un numero (>=0) y (<= 100): ");
+            get (d);
+            if (d < 0) or (d > 100) then
+                put_line("El numero debe ser >= 0 y <= 100.");
+		    end
+	    end
+        v[i] := d;
+        i := i + 1;
+    end
+end
+
+------------------------------------------------------
+procedure escribir_vector (ref integer A[101], val integer max) is
+
+integer aux;
+------------------------------------------------------
+begin
+    aux := 0;
+    while aux < max then
+        put_line(A[aux]);
+    end
+end
+------------------------------------------------------
+begin
+    n := 5
+    //get vectores
+
+    indice := 1
+    A[0] := 1
+    j := 1
+    i:= 2
+
+    while i<n then
+        if C[i] >= F[j] then
+            A[indice] := i;
+            indice := indice + 1
+            j := i
+        end
+    end
+
+    put_line("La solución optima para el problema de la seleccion de actividades es: ");
+    escribir_vector(A, n);
+
+
+end

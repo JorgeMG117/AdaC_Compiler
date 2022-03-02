@@ -88,17 +88,17 @@ TOKEN :
 |	< tBOOL: "boolean" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "inicio funcion");
+			informacion(matchedToken, "declaracion boolean");
  		}
 |	< tCHAR: "character" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "inicio funcion");
+			informacion(matchedToken, "declaracion character");
  		}
 |	< tINT: "integer" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "inicio funcion");
+			informacion(matchedToken, "declaracion integer");
  		}
 //constantes tipos
 |	< tVINT: (<DIGIT>)+ >
@@ -106,7 +106,7 @@ TOKEN :
  			//mostrar la información pedida
 			informacion(matchedToken, "constante entera");
  		}
-|	< tVCHAR: "'"<LETTER>"'" >
+|	< tVCHAR: "'"(~["\n","\r"])"'" >
  		{
  			//mostrar la información pedida
 			informacion(matchedToken, "constante char");
@@ -121,7 +121,7 @@ TOKEN :
  			//mostrar la información pedida
 			informacion(matchedToken, "constante bool false");
  		}
-|	< tVSTRING: "\""(~["\n","\r"])+"\"" >
+|	< tVSTRING: "\""(~["\n","\r"])*"\"" >
  		{
  			//mostrar la información pedida
 			informacion(matchedToken, "constante string");
@@ -171,7 +171,7 @@ TOKEN :
 |	< tLESSEQ: "<=" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador mayor o igual);
+			informacion(matchedToken, "operador mayor o igual");
  		}
 |	< tMOREEQ: ">=" >
  		{
@@ -188,40 +188,153 @@ TOKEN :
  			//mostrar la información pedida
 			informacion(matchedToken, "operador asignacion");
  		}
+|	< tEQ: "=" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador igual");
+ 		}
 //aritmetica
 |	< tNEG: "-" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador menos);
+			informacion(matchedToken, "operador menos");
  		}
 |	< tPOS: "+" >
  		{
  			//mostrar la información pedida
 			informacion(matchedToken, "operador mas");
  		}
+|	< tMUL: "*" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador multiplicar");
+ 		}
+|	< tDIV: "div" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador division");
+ 		}			
+|	< tMOD: "mod" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operador modulo");
+ 		}			  		 
+//operaciones logicas
+|	< tAND: "and" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "logica and");
+ 		}	
+|	< tNOT: "not" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "logica not");
+ 		}	
+|	< tOR: "or" >
+ 		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "logica or");
+ 		}	
 //palabras reservadas en minusculas
 |	< tPROC: "procedure" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "reservada procedure");
+ 		}
 |	< tFUNCT: "function" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "reservada function");
+ 		}
 |	< tRETURN: "return" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "reservada return");
+ 		}
 |	< tVAL: "val" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "parametro por valor");
+ 		}
 |	< tREF: "ref" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "parametro por referencia");
+ 		}
 |	< tIS: "is" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "reservada is");
+ 		}
 |	< tPUT: "put" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operacion put");
+ 		}
 |	< tPUTL: "put_line" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operacion put_line");
+ 		}
+|	< tGET: "get" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operacion get");
+ 		}
+|	< tI2C: "int2char" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operacion int2char");
+ 		}
 |	< tEND: "end" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "reservada end");
+ 		}
 |	< tIF: "if" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "condicion if");
+ 		}
 |	< tELSE: "else" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "condicion else");
+ 		}
 |	< tWHILE: "while" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "bucle while");
+ 		}
 |	< tDO: "do" >
-|	< tTHEN: "then" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "reservada do");
+ 		}
+|	< tTHEN: "then" >		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "reservada then");
+ 		}
 //identificador, no se si existe ?
-//|	< tID: ("_"(<ALPHANUM>|<ALPHANUM>"_")* | <LETTER>("_"<ALPHANUM>|<ALPHANUM>)*"_"?) >
+|	< tID: ("_"(<ALPHANUM>|<ALPHANUM>"_")* | <LETTER>("_"<ALPHANUM>|<ALPHANUM>)*("_")?) >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "identificador");
+ 		}
 
 //empeiza por barra y no hay dos barras
 //_(x|x_)* 
 //empieza por letra y no hay dos barras
 //y(_x|x)*_?
 
+}
+
+TOKEN: 
+{
+	< tDEF: ~[] >		
+		{
+			System.out.println("ERROR LEXICO: (" + matchedToken.beginLine + "," + matchedToken.beginColumn + "): simbolo no reconocido: " + "<" + matchedToken.image + ">");			
+		}
 }
 
 //------------ Símbolo inicial de la gramática. Para análisis léxico no hace falta más
@@ -234,9 +347,10 @@ void S () :
 	< tBEGIN > 		| < tBOOL > 	| < tCHAR > 	| < tINT> 		| < tVINT > 		| < tVCHAR > 		| < tTRUE > 
 	| < tFALSE > 	| < tVSTRING >	| < tCOMMA > 	| < tPCOMMA > 	| < tSBR > 			| < tEBR > 			| < tISQBR > 	
 	| < tESQBR > 	| < tLESS >		| < tMORE > 	| < tLESSEQ > 	| < tMOREEQ > 		| < tNOTEQ > 		| < tASSIGN > 		
-	| < tNEG >		| < tPOS > 		| < tPROC >		| < tFUNCT > 	| < tRETURN > 		| < tVAL > 			| < tREF > 		
-	| < tIS >		| < tPUT >		| < tPUTL > 	| < tEND > 		| < tIF >			| < tELSE > 		| < tWHILE > 	
-	| < tDO > 		| < tTHEN > 	| < tID >
+	| <tEQ>			| < tNEG >		| < tPOS > 		| <tMUL>		| < tPROC >			| < tFUNCT > 		| < tRETURN > 		
+	| < tVAL > 		| < tREF > 		| < tIS >		| < tPUT >		| < tPUTL > 		| < tEND > 			| < tIF >			
+	| < tELSE > 	| < tWHILE > 	| < tDO > 		| < tTHEN > 	| < tID >			| <tDEF >			| < tI2C >
+	| < tGET >		| < tMOD >		| < tDIV>		| < tAND >		| < tNOT >			| < tOR>
 	)+
 	< EOF >
 }
