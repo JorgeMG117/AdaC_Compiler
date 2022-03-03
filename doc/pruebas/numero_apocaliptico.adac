@@ -16,6 +16,22 @@ begin
 	end
 end
 ------------------------------------------------------
+
+function integer exp (val integer base, exponente) is
+
+integer sol;
+------------------------------------------------------------------------
+begin
+    sol := 1;
+    while (exponente > 0) do
+        sol := sol * base;
+        exponente := exponente - 1;
+    end
+    return sol;
+end
+
+------------------------------------------------------------------------
+
 function boolean apocaliptico(val integer n) is
 integer k, secuencia;
 boolean esta;
