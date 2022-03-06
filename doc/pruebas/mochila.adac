@@ -1,10 +1,13 @@
-------------------------------------------------------
-procedure seleccion_actividades is 
-integer C[101], F[101];
-integer i, j;
-integer A[101];
-integer indice;
-integer n;
+--problema de la mochila, vectores ordenados por beneficio/peso, que porcentaje del objeto i metemos en la mochila
+procedure mochila is
+	integer peso[101];
+	integer	benef[101];
+	integer cap;
+
+	integer sol[101];
+	integer resto;
+	integer i;
+	integer n;
 ------------------------------------------------------
 procedure inicilizar (ref integer v[101]; val integer N) is
 integer i, d;
@@ -31,6 +34,7 @@ procedure escribir_vector (ref integer A[101]; val integer N) is
 integer aux;
 ------------------------------------------------------
 begin
+	put_line("Mostrando vector solucion: ");
     aux := 0;
     while (aux < N) and (A[aux] <> 0)do
         put_line(A[aux], ",");
@@ -38,29 +42,37 @@ begin
     end
 end
 ------------------------------------------------------
+
 begin
-    put_line("Introduzca el numero de elementos del vector: ");
-    get(n);
-    put_line("Introduzca el vector de inicio: ");
-    inicilizar(C, n);
-    put_line("Introzuca el vector de final: ");
-    inicilizar(F, n);
+	put_line("Introduzca el numero de elementos del vector: ");
+	get(n);
+	put_line("Introduzca la capacidad de la mochila: ");
+	get(cap);
 
-    indice := 1;
-    A[0] := 1;
-    j := 1;
-    i:= 2;
-    
+	--iniciar vectores peso and benef
+	put_line("Inicializando el vector de pesos");
+	inicilizar(peso, n);
+	put_line("Inicializando el vector de beneficios");
+	inicilizar(benef, n);
 
-    while i<n do
-        if C[i] >= F[j] then
-            A[indice] := i;
-            indice := indice + 1;
-            j := i;
-        end
-        i := i + 1;
-    end
+	while i < n do
+		sol[i] := 0;
+		i:= i + 1;
+	end
+	
+	resto := cap;
+	i := 0;
 
-    put_line("La solucion optima para el problema de la seleccion de actividades es: ");
-    escribir_vector(A, n);
+	while (i<=n) and (peso[i]<=resto) do
+		sol[i]:=1; 
+		resto:=resto-peso[i]; 
+		i:=i+1;
+	end
+
+	if i <= n then 
+		sol[i]:=resto div peso[i]; --no hay decimales
+	end
+	
+	--devuelve sol
+	escribir_vector(sol, n);
 end

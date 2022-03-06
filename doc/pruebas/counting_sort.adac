@@ -1,5 +1,3 @@
--- Un número apocalíptico es aquel número natural n tal que 2^n contiene la secuencia 666.
-
 procedure counting_sort is
 
 integer A[101], B[101];
@@ -9,10 +7,10 @@ procedure inicilizarN (ref integer N) is
 integer d;
 begin
     get (d);
-    while d < 0  or d > 100 do
+    while (d < 0)  or (d > 100) do
         put ("Escribe un numero (>=0) y (<= 100): ");
         get (d);
-        if d < 0 or d > 100 then
+        if (d < 0) or (d > 100) then
             put_line("El numero debe ser >= 0 y <= 100.");
         end
     end
@@ -36,17 +34,17 @@ end
 ------------------------------------------------------------------------
 
 
-procedure inicilizarAk (ref integer v[101], val integer N, ref integer k) is
+procedure inicilizarAk (ref integer v[101]; val integer N; ref integer k) is
 integer i, d, max;
 begin
     max := 0;
     i := 0;
     while i < N do
         get (d);
-        while d < 0  or d > 100 do
+        while (d < 0)  or (d > 100) do
             put ("Escribe un numero (>=0) y (<= 100): ");
             get (d);
-            if d < 0 or d > 100 then
+            if (d < 0) or (d > 100) then
                 put_line("El numero debe ser >= 0 y <= 100.");
 		    end
 	    end
@@ -56,10 +54,10 @@ begin
         v[i] := d;
         i := i + 1;
     end
-    k := max
+    k := max;
 end
 --------------------------------------------------------------------
-procedure sort(ref integer A[101], ref integer B[101], val integer N, val integer k) is
+procedure sort(ref integer A[101]; ref integer B[101]; val integer n, k) is
 integer C[101];
 integer i;
 begin
