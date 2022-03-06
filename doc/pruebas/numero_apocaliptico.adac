@@ -4,16 +4,22 @@ procedure numero_apocaliptico is
 
 integer i;
 ------------------------------------------------------
-procedure dato (ref integer d) is
+function integer dato () is
+
+integer d;
+------------------------------------------------------------------------
 begin
-	d:=0;
+	d := 0;
+
 	while d <= 0 do
-		put ("Escribe un numero (>0): ");
+		put ("Escribe un numero (30>n>0): ");
 		get (d);
-		if d <= 0 then
-			put_line("El numero debe ser > 0.");
+		if (d <= 0) or (d > 30) then
+			put_line("El numero debe ser 30>n>0.");
 		end
 	end
+
+    return d;
 end
 ------------------------------------------------------
 
@@ -36,10 +42,10 @@ function boolean apocaliptico(val integer n) is
 integer k, secuencia;
 boolean esta;
 begin
-	n := 2 ^ n; -- Existe el ^????
+	n := exp(2,n);
     -- Comprobar si esta la secuencia 666
     secuencia := 0;
-    while secuencia < 3 or n <> 0 do
+    while (secuencia < 3) and (n <> 0) do
         if n mod 10 = 6 then
             secuencia := secuencia + 1;
         end
@@ -51,8 +57,8 @@ end
 ------------------------------------------------------
 
 begin
-    put_line ("Este programa pide un número natural y calcula si es un numero apocaliptico.");
-	dato (i);
+    put_line ("Este programa pide un numero natural y calcula si es un numero apocaliptico.");
+	i:= dato ();
 	put_line ("");
     if apocaliptico(i) then
         put_line(i, " es un numero apocaliptico");
