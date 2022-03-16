@@ -10,6 +10,7 @@
 //   IGNORE_CASE = false;
 //   COMMON_TOKEN_ACTION = false;
 //   ...
+//DEBUG_PARSER = true
 // }
 
 PARSER_BEGIN(adac)
@@ -26,7 +27,7 @@ public class adac {
 			else { //entrada desde fichero en args[0]
 	            parser = new adac(new java.io.FileInputStream(args[0])); 
 			}
-			parser.S(); //invoca símbolo inicial de la gramática
+			parser.programa(); //invoca símbolo inicial de la gramática
 		} catch (java.io.FileNotFoundException e) {
 			System.err.println ("Fichero " + args[0] + " no encontrado.");
 		} catch (TokenMgrError e) {
@@ -58,7 +59,7 @@ SKIP :
 
 SPECIAL_TOKEN :
 {
-  <SINGLE_LINE_COMMENT: "--" (~["\n","\r"])* ("\n"|"\r"|"\r\n")>
+  <SINGLE_LINE_COMMENT: "--" (~["\n","\r"])* ("\n"|"\r"|"\r\n")> //Ojo si no hay final fichero pilla primero como operador
 }
 
 
@@ -127,12 +128,12 @@ TOKEN :
 			informacion(matchedToken, "constante string");
  		}
 //simbolos
-|	< tCOMMA: "," >
+|	< tC: "," >
  		{
  			//mostrar la información pedida
 			informacion(matchedToken, "simbolo coma");
  		}
-|	< tPCOMMA: ";" >
+|	< tPC: ";" >
  		{
  			//mostrar la información pedida
 			informacion(matchedToken, "simbolo punto y coma");
@@ -286,6 +287,11 @@ TOKEN :
  			//mostrar la información pedida
 			informacion(matchedToken, "operacion int2char");
  		}
+|	< tC2I: "char2int" >
+		{
+ 			//mostrar la información pedida
+			informacion(matchedToken, "operacion char2int");
+ 		}
 |	< tEND: "end" >
 		{
  			//mostrar la información pedida
@@ -315,17 +321,12 @@ TOKEN :
  			//mostrar la información pedida
 			informacion(matchedToken, "reservada then");
  		}
-//identificador, no se si existe ?
+//identificador
 |	< tID: ("_"(<ALPHANUM>|<ALPHANUM>"_")* | <LETTER>("_"<ALPHANUM>|<ALPHANUM>)*("_")?) >
 		{
  			//mostrar la información pedida
 			informacion(matchedToken, "identificador");
  		}
-
-//empeiza por barra y no hay dos barras
-//_(x|x_)* 
-//empieza por letra y no hay dos barras
-//y(_x|x)*_?
 
 }
 
@@ -337,20 +338,300 @@ TOKEN:
 		}
 }
 
+
 //------------ Símbolo inicial de la gramática. Para análisis léxico no hace falta más
-void S () : 
+void programa () : 
 {
 
 }
 {
-	( 
-	< tBEGIN > 		| < tBOOL > 	| < tCHAR > 	| < tINT> 		| < tVINT > 		| < tVCHAR > 		| < tTRUE > 
-	| < tFALSE > 	| < tVSTRING >	| < tCOMMA > 	| < tPCOMMA > 	| < tSBR > 			| < tEBR > 			| < tISQBR > 	
-	| < tESQBR > 	| < tLESS >		| < tMORE > 	| < tLESSEQ > 	| < tMOREEQ > 		| < tNOTEQ > 		| < tASSIGN > 		
-	| <tEQ>			| < tNEG >		| < tPOS > 		| <tMUL>		| < tPROC >			| < tFUNCT > 		| < tRETURN > 		
-	| < tVAL > 		| < tREF > 		| < tIS >		| < tPUT >		| < tPUTL > 		| < tEND > 			| < tIF >			
-	| < tELSE > 	| < tWHILE > 	| < tDO > 		| < tTHEN > 	| < tID >			| <tDEF >			| < tI2C >
-	| < tGET >		| < tMOD >		| < tDIV>		| < tAND >		| < tNOT >			| < tOR>
-	)+
-	< EOF >
+	<tPROC>
+	<tID>
+	<tIS>
+	declaracion_variables()
+	declaracion_procs_funcs()
+	bloque_sentencias()
+}
+
+void declaracion_variables():
+{
+
+}
+{
+	( declaracion() <tPC> )*
+}
+
+void declaracion():
+{
+	
+}
+{
+	tipo_variable() lista_vars()
+}
+
+void tipo_variable():
+{
+
+}
+{
+	<tINT> | <tCHAR> | <tBOOL>
+}
+
+void lista_vars():
+{
+
+}
+{
+	variable() ( <tC> variable() )*
+}
+
+void variable():
+{
+	
+}
+{
+	LOOKAHEAD(2)
+	<tID> <tISQBR> <tVINT> <tESQBR>	/*vectores*/
+	| <tID>
+}
+
+void declaracion_procs_funcs():
+{
+
+}
+{
+	( declaracion_proc_func() )*
+}
+
+//...
+void declaracion_proc_func():
+{
+
+}
+{
+	(<tPROC> | <tFUNCT> tipo_variable())
+	declaracion_proc_func2()
+}
+//...
+
+void declaracion_proc_func2():
+{
+
+}
+{
+	cabecera_proc_func()
+	declaracion_variables()
+	bloque_sentencias()
+}
+
+//...
+void cabecera_proc_func():
+{
+	
+}
+{
+	<tID> <tSBR> (argumentos_proc_func())? <tEBR> <tIS>
+}
+
+void argumentos_proc_func(): 
+{
+	
+}
+{
+	(<tREF> | <tVAL>)
+	declaracion()
+	(<tPC> (<tREF> | <tVAL>) declaracion())*
+}
+
+
+//...
+void bloque_sentencias():
+{
+
+}
+{
+	< tBEGIN> 
+	(instruccion())*
+	< tEND >
+}
+
+void instruccion():
+{
+
+}
+{
+	inst_asignacion() <tPC> 
+	//| inst_escribir() <tPC> 
+	| inst_escribir_linea() <tPC> 
+	| inst_return() <tPC> 
+}
+
+void inst_return():
+{
+
+}
+{
+	<tRETURN> expresion()
+}
+
+void inst_asignacion():
+{
+
+}
+{
+	asignable()
+	<tASSIGN>
+	expresion()
+}
+
+void asignable():
+{
+
+}
+{
+	LOOKAHEAD(2)
+	<tID> <tISQBR> expresion_simple() <tESQBR>	/*vectores*/
+	| <tID>
+}
+
+/*void inst_escribir():
+{
+
+}
+{
+
+}*/
+
+void inst_escribir_linea():
+{
+
+}
+{
+	<tPUTL> <tSBR> 
+	((asignable() | <tVSTRING>) ( <tC> (asignable() | <tVSTRING> ))*)?		
+	<tEBR>
+}
+
+
+/*
+
+//...
+
+void instruccion():
+{
+
+}
+{
+	inst_leer() <tPC>
+	| inst_saltar_linea() <tPC> 
+
+	| LOOKAHEAD(2)
+		inst_invoc_proc() <tPC> 
+	| inst_seleccion()
+	| inst_iteracion()
+
+}
+
+
+
+//...
+
+void inst_iteracion():
+{
+	
+}
+{
+	<tWHILE>
+	expresion()
+	<tDO>
+	lista_instruccionesO()
+	<tEND>
+}
+
+//... skip_line() generar en c para ver que hace
+
+void lista_cero_o_mas_exps():
+{
+
+}
+{
+	( lista_una_o_mas_exps() )?
+}
+*/
+void expresion() : 
+{
+
+}
+{
+	expresion_simple() ( operador_relacional() expresion_simple() )?
+}  
+
+void operador_relacional():
+{
+
+}
+{
+	<tEQ>
+	| <tLESS>
+	| <tMORE>
+	| <tLESSEQ>
+	| <tMOREEQ>
+	| <tNOTEQ>
+}
+
+void expresion_simple(): 
+{
+
+}
+{
+	( <tPOS> | <tNEG> )?
+	termino() ( operador_aditivo() termino() )*
+}
+
+void operador_aditivo():
+{
+
+}
+{
+	<tPOS>
+	| <tNEG>
+	| <tOR>
+}
+
+void termino():
+{
+	
+}
+{
+	factor() ( operador_multiplicativo() factor() )*
+}
+
+void operador_multiplicativo():
+{
+
+}
+{
+	<tMUL>
+	| <tMOD>
+	| <tDIV>
+	| <tAND>
+}
+
+void factor():
+{
+
+}
+{
+	<tNOT> factor()
+	| <tSBR> expresion() <tEBR>
+	| <tI2C> <tSBR> expresion() <tEBR>
+	| <tC2I> <tSBR> expresion() <tEBR>
+	//| LOOKAHEAD(2)  <tID> <tSBR> lista_cero_o_mas_exps() <tEBR>
+	| LOOKAHEAD(2)  <tID> <tISQBR> expresion() <tESQBR>
+	| <tID>
+	| <tVINT>
+	| <tVCHAR>
+	| <tVSTRING>
+	| <tTRUE>
+	| <tFALSE>
 }
