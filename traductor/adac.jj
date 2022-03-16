@@ -277,6 +277,11 @@ TOKEN :
  			//mostrar la información pedida
 			informacion(matchedToken, "operacion put_line");
  		}
+|	< tSKIP: "skip_line()" > //no esoty seguro de que sea asi
+		 {
+			  //mostrar la información pedida
+			 informacion(matchedToken, "operacion skip_line");
+		  }
 |	< tGET: "get" >
 		{
  			//mostrar la información pedida
@@ -451,7 +456,7 @@ void bloque_sentencias():
 }
 {
 	< tBEGIN> 
-	(instruccion())*
+	lista_instrucciones()
 	< tEND >
 }
 
@@ -461,9 +466,90 @@ void instruccion():
 }
 {
 	inst_asignacion() <tPC> 
-	//| inst_escribir() <tPC> 
+	| inst_escribir() <tPC> 
 	| inst_escribir_linea() <tPC> 
 	| inst_return() <tPC> 
+	| inst_saltar_linea() <tPC> 
+	| inst_leer() <tPC>
+	| inst_iteracion()
+	| inst_seleccion()
+}
+
+void lista_instrucciones():
+{
+
+}
+{
+	(instruccion())*
+}
+
+void inst_seleccion():
+{
+
+}
+{
+	/*  if fila > tamano_tablero
+            then endal := true;
+        else if columna > tamano_tablero
+            then columna := 1; fila := fila + 1;
+        else if ocupada (tablero, fila, columna)
+            then columna := columna + 1;
+        else 
+            endal := true;
+        end
+		
+		<if> expresion? <then>
+			instrucciones*
+		else (<if> expresion? <then>)?
+			instrucciones*
+		<tend>
+		
+	*/
+
+	cabecera_condicion() lista_instrucciones()		//no vamos a mentir, no he pensado mucho si la expresion va bien ahi, diria que si :)
+	//if cond then		  instr
+	(<tELSE> cabecera_condicion() lista_instrucciones())*
+	//else 	  if cond then		   instr
+	(<tELSE> lista_instrucciones())?
+	//else    instr
+	<tEND>
+
+
+}
+
+void cabecera_condicion():
+{
+
+}
+{
+	<tIF> expresion() <tTHEN>		//if cond then
+}
+
+
+void inst_iteracion():
+{
+
+}
+{
+	/* 	while d <= 0 do
+		put ("Escribe un numero (>0): ");
+		get (d);
+		if d <= 0 then
+			put_line("El numero debe ser > 0.");
+		end
+	end 
+	
+	<while> condicion <do>
+		instrucciones*
+	<end>
+	
+	*/
+
+	<tWHILE> expresion() <tDO>		//no vamos a mentir, no he pensado mucho si la expresion va bien ahi, diria que si :)
+	lista_instrucciones()
+	<tEND>
+
+
 }
 
 void inst_return():
@@ -490,28 +576,53 @@ void asignable():
 }
 {
 	LOOKAHEAD(2)
-	<tID> <tISQBR> expresion_simple() <tESQBR>	/*vectores*/
+	<tID> <tISQBR> expresion_simple() <tESQBR>	//la posicion de un vector puede venir de una exp_simple
 	| <tID>
 }
 
-/*void inst_escribir():
+void inst_escribir():
 {
 
 }
 {
-
-}*/
+	<tPUT> escribir()	//hemos quedado que eran iguales pero con un salto ed linea
+}
 
 void inst_escribir_linea():
 {
 
 }
 {
-	<tPUTL> <tSBR> 
+	<tPUTL> escribir()
+}
+
+void escribir(): 
+{
+
+}
+{
+	<tSBR> 
 	((asignable() | <tVSTRING>) ( <tC> (asignable() | <tVSTRING> ))*)?		
 	<tEBR>
 }
 
+
+void inst_saltar_linea(): 
+{
+
+}
+{
+	<tSKIP>	//he añadido el token pero ojo
+}
+
+
+void inst_leer():
+{
+
+}
+{
+	<tGET> <tSBR> asignable() <tEBR>	//get (var);
+}
 
 /*
 
@@ -522,13 +633,11 @@ void instruccion():
 
 }
 {
-	inst_leer() <tPC>
-	| inst_saltar_linea() <tPC> 
+	
+	
 
 	| LOOKAHEAD(2)
 		inst_invoc_proc() <tPC> 
-	| inst_seleccion()
-	| inst_iteracion()
 
 }
 
@@ -544,7 +653,7 @@ void inst_iteracion():
 	<tWHILE>
 	expresion()
 	<tDO>
-	lista_instruccionesO()
+	lista_instrucciones()
 	<tEND>
 }
 
