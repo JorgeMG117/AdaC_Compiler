@@ -6,17 +6,22 @@
 //         https://javacc.github.io/javacc/tutorials/token-manager.html
 //*****************************************************************
 
-// options {
+options {
 //   IGNORE_CASE = false;
 //   COMMON_TOKEN_ACTION = false;
 //   ...
-//DEBUG_PARSER = true
-// }
+	//DEBUG_PARSER = true;
+}
 
 PARSER_BEGIN(adac)
 package traductor;
 
+import java.util.*;
+
 public class adac {
+
+	
+
     public static void main(String[] args) {
     	adac parser;
 
@@ -69,8 +74,6 @@ SPECIAL_TOKEN :
 // "\n" : DEFAULT
 //}
 
-
-
 TOKEN :
 {
  	< #LETTER: (["a"-"z","A"-"Z"]) >
@@ -83,254 +86,253 @@ TOKEN :
 {
  	< tBEGIN: "begin" >
  		{
- 			//mostrar la información pedida
-			informacion(matchedToken, "inicio funcion");
+			//informacion(matchedToken, "inicio funcion");
  		}
 |	< tBOOL: "boolean" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "declaracion boolean");
+			//informacion(matchedToken, "declaracion boolean");
  		}
 |	< tCHAR: "character" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "declaracion character");
+			//informacion(matchedToken, "declaracion character");
  		}
 |	< tINT: "integer" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "declaracion integer");
+			//informacion(matchedToken, "declaracion integer");
  		}
 //constantes tipos
 |	< tVINT: (<DIGIT>)+ >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "constante entera");
+			//informacion(matchedToken, "constante entera");
  		}
 |	< tVCHAR: "'"(~["\n","\r"])"'" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "constante char");
+			//informacion(matchedToken, "constante char");
  		}
 |	< tTRUE: "true" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "constante bool true");
+			//informacion(matchedToken, "constante bool true");
  		}
 |	< tFALSE: "false" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "constante bool false");
+			//informacion(matchedToken, "constante bool false");
  		}
-|	< tVSTRING: "\""(~["\n","\r"])*"\"" >
+|	< tVSTRING: "\""(~["\n","\r","\""])*"\"" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "constante string");
+			//informacion(matchedToken, "constante string");
  		}
 //simbolos
 |	< tC: "," >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "simbolo coma");
+			//informacion(matchedToken, "simbolo coma");
  		}
 |	< tPC: ";" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "simbolo punto y coma");
+			//informacion(matchedToken, "simbolo punto y coma");
  		}
 |	< tSBR: "(" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "simbolo parentesis abierto");
+			//informacion(matchedToken, "simbolo parentesis abierto");
  		}
 |	< tEBR: ")" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "simbolo parentesis cerrado");
+			//informacion(matchedToken, "simbolo parentesis cerrado");
  		}
 |	< tISQBR: "[" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "simbolo corchete abierto");
+			//informacion(matchedToken, "simbolo corchete abierto");
  		}
 |	< tESQBR: "]" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "simbolo corchete cerrado");
+			//informacion(matchedToken, "simbolo corchete cerrado");
  		}
 //logica
 |	< tLESS: "<" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador mayor");
+			//informacion(matchedToken, "operador mayor");
  		}
 |	< tMORE: ">" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador menor");
+			//informacion(matchedToken, "operador menor");
  		}
 |	< tLESSEQ: "<=" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador mayor o igual");
+			//informacion(matchedToken, "operador mayor o igual");
  		}
 |	< tMOREEQ: ">=" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador menor o igual");
+			//informacion(matchedToken, "operador menor o igual");
  		}
 |	< tNOTEQ: "<>" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador igual");
+			//informacion(matchedToken, "operador igual");
  		}
 |	< tASSIGN: ":=" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador asignacion");
+			//informacion(matchedToken, "operador asignacion");
  		}
 |	< tEQ: "=" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador igual");
+			//informacion(matchedToken, "operador igual");
  		}
 //aritmetica
 |	< tNEG: "-" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador menos");
+			//informacion(matchedToken, "operador menos");
  		}
 |	< tPOS: "+" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador mas");
+			//informacion(matchedToken, "operador mas");
  		}
 |	< tMUL: "*" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador multiplicar");
+			//informacion(matchedToken, "operador multiplicar");
  		}
 |	< tDIV: "div" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador division");
+			//informacion(matchedToken, "operador division");
  		}			
 |	< tMOD: "mod" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operador modulo");
+			//informacion(matchedToken, "operador modulo");
  		}			  		 
 //operaciones logicas
 |	< tAND: "and" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "logica and");
+			//informacion(matchedToken, "logica and");
  		}	
 |	< tNOT: "not" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "logica not");
+			//informacion(matchedToken, "logica not");
  		}	
 |	< tOR: "or" >
  		{
  			//mostrar la información pedida
-			informacion(matchedToken, "logica or");
+			//informacion(matchedToken, "logica or");
  		}	
 //palabras reservadas en minusculas
 |	< tPROC: "procedure" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "reservada procedure");
+			//informacion(matchedToken, "reservada procedure");
  		}
 |	< tFUNCT: "function" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "reservada function");
+			//informacion(matchedToken, "reservada function");
  		}
 |	< tRETURN: "return" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "reservada return");
+			//informacion(matchedToken, "reservada return");
  		}
 |	< tVAL: "val" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "parametro por valor");
+			//informacion(matchedToken, "parametro por valor");
  		}
 |	< tREF: "ref" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "parametro por referencia");
+			//informacion(matchedToken, "parametro por referencia");
  		}
 |	< tIS: "is" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "reservada is");
+			//informacion(matchedToken, "reservada is");
  		}
 |	< tPUT: "put" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operacion put");
+			//informacion(matchedToken, "operacion put");
  		}
 |	< tPUTL: "put_line" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operacion put_line");
+			//informacion(matchedToken, "operacion put_line");
  		}
-|	< tSKIP: "skip_line()" > //no esoty seguro de que sea asi
+|	< tSKIP: "skip_line" > 
 		 {
-			  //mostrar la información pedida
-			 informacion(matchedToken, "operacion skip_line");
+			//mostrar la información pedida
+			//informacion(matchedToken, "operacion skip_line");
 		  }
 |	< tGET: "get" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operacion get");
+			//informacion(matchedToken, "operacion get");
  		}
 |	< tI2C: "int2char" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operacion int2char");
+			//informacion(matchedToken, "operacion int2char");
  		}
 |	< tC2I: "char2int" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "operacion char2int");
+			//informacion(matchedToken, "operacion char2int");
  		}
 |	< tEND: "end" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "reservada end");
+			//informacion(matchedToken, "reservada end");
  		}
 |	< tIF: "if" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "condicion if");
+			//informacion(matchedToken, "condicion if");
  		}
 |	< tELSE: "else" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "condicion else");
+			//informacion(matchedToken, "condicion else");
  		}
 |	< tWHILE: "while" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "bucle while");
+			//informacion(matchedToken, "bucle while");
  		}
 |	< tDO: "do" >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "reservada do");
+			//informacion(matchedToken, "reservada do");
  		}
 |	< tTHEN: "then" >		{
  			//mostrar la información pedida
-			informacion(matchedToken, "reservada then");
+			//informacion(matchedToken, "reservada then");
  		}
 //identificador
 |	< tID: ("_"(<ALPHANUM>|<ALPHANUM>"_")* | <LETTER>("_"<ALPHANUM>|<ALPHANUM>)*("_")?) >
 		{
  			//mostrar la información pedida
-			informacion(matchedToken, "identificador");
+			//informacion(matchedToken, "identificador");
  		}
 
 }
@@ -465,14 +467,30 @@ void instruccion():
 
 }
 {
-	inst_asignacion() <tPC> 
-	| inst_escribir() <tPC> 
-	| inst_escribir_linea() <tPC> 
-	| inst_return() <tPC> 
-	| inst_saltar_linea() <tPC> 
-	| inst_leer() <tPC>
-	| inst_iteracion()
-	| inst_seleccion()
+	try{
+		inst_escribir() <tPC> 
+		| inst_escribir_linea() <tPC> 
+		| inst_return() <tPC> 
+		| inst_saltar_linea() <tPC> 
+		| inst_leer() <tPC>
+		| inst_iteracion()
+		| inst_seleccion()
+		| LOOKAHEAD(2)
+			inst_invoc_proc() <tPC> 
+		| inst_asignacion() <tPC> 
+	} catch (ParseException e) {
+		Set<Integer> conjSinc = infoParseException(e);
+		conjSinc.add(tPC);
+		recuperacionPanico(e.currentToken.next, conjSinc);
+	}
+}
+
+void inst_invoc_proc(): 
+{
+}
+{
+	//funcion( )
+	<tID> <tSBR> lista_cero_o_mas_exps() <tEBR>
 }
 
 void lista_instrucciones():
@@ -488,41 +506,20 @@ void inst_seleccion():
 
 }
 {
-	/*  if fila > tamano_tablero
-            then endal := true;
-        else if columna > tamano_tablero
-            then columna := 1; fila := fila + 1;
-        else if ocupada (tablero, fila, columna)
-            then columna := columna + 1;
-        else 
-            endal := true;
-        end
-		
-		<if> expresion? <then>
-			instrucciones*
-		else (<if> expresion? <then>)?
-			instrucciones*
-		<tend>
-		
-	*/
-
-	cabecera_condicion() lista_instrucciones()		//no vamos a mentir, no he pensado mucho si la expresion va bien ahi, diria que si :)
-	//if cond then		  instr
-	(<tELSE> cabecera_condicion() lista_instrucciones())*
-	//else 	  if cond then		   instr
-	(<tELSE> lista_instrucciones())?
-	//else    instr
-	<tEND>
-
-
-}
-
-void cabecera_condicion():
-{
-
-}
-{
-	<tIF> expresion() <tTHEN>		//if cond then
+	try {
+		<tIF> expresion() <tTHEN> lista_instrucciones()		
+		//if cond then		  instr
+		//else 	  if cond then		   instr
+		(<tELSE> lista_instrucciones())?
+		//else    instr
+		<tEND>
+	} catch (ParseException e) {
+		//Set<Integer> conjSinc = infoParseException(e);
+		//conjSinc.add(tEND);
+		Set<Integer> conjSinc = new HashSet<Integer>();
+		conjSinc.add(tEND);
+		recuperacionPanico(e.currentToken.next, conjSinc);
+	}
 }
 
 
@@ -531,23 +528,19 @@ void inst_iteracion():
 
 }
 {
-	/* 	while d <= 0 do
-		put ("Escribe un numero (>0): ");
-		get (d);
-		if d <= 0 then
-			put_line("El numero debe ser > 0.");
-		end
-	end 
-	
-	<while> condicion <do>
-		instrucciones*
-	<end>
-	
-	*/
 
-	<tWHILE> expresion() <tDO>		//no vamos a mentir, no he pensado mucho si la expresion va bien ahi, diria que si :)
-	lista_instrucciones()
-	<tEND>
+	try {
+		<tWHILE> expresion() <tDO>		
+		lista_instrucciones()
+		<tEND>
+	} catch (ParseException e) {
+		//Set<Integer> conjSinc = infoParseException(e);
+		//conjSinc.add(tEND);
+		Set<Integer> conjSinc = new HashSet<Integer>();
+		conjSinc.add(tEND);
+		recuperacionPanico(e.currentToken.next, conjSinc);
+	}
+
 
 
 }
@@ -570,6 +563,14 @@ void inst_asignacion():
 	expresion()
 }
 
+void lista_una_o_mas_asignable():
+{
+
+}
+{
+	asignable() ( <tC> asignable())*
+}
+
 void asignable():
 {
 
@@ -585,25 +586,15 @@ void inst_escribir():
 
 }
 {
-	<tPUT> escribir()	//hemos quedado que eran iguales pero con un salto ed linea
+	<tPUT> <tSBR> lista_una_o_mas_exps() <tEBR>	//iguales pero con un salto ed linea
 }
 
-void inst_escribir_linea():
+void inst_escribir_linea()://lista 0 a mas expresiones
 {
 
 }
 {
-	<tPUTL> escribir()
-}
-
-void escribir(): 
-{
-
-}
-{
-	<tSBR> 
-	((asignable() | <tVSTRING>) ( <tC> (asignable() | <tVSTRING> ))*)?		
-	<tEBR>
+	<tPUTL> <tSBR> lista_cero_o_mas_exps() <tEBR>
 }
 
 
@@ -612,50 +603,18 @@ void inst_saltar_linea():
 
 }
 {
-	<tSKIP>	//he añadido el token pero ojo
+	<tSKIP>	<tSBR> <tEBR>
 }
+ 
 
-
-void inst_leer():
+void inst_leer(): //lista de uno o mas asignables
 {
 
 }
 {
-	<tGET> <tSBR> asignable() <tEBR>	//get (var);
+	<tGET> <tSBR> lista_una_o_mas_asignable() <tEBR>	//get (lista_var);
 }
 
-/*
-
-//...
-
-void instruccion():
-{
-
-}
-{
-	
-	
-
-	| LOOKAHEAD(2)
-		inst_invoc_proc() <tPC> 
-
-}
-
-
-
-//...
-
-void inst_iteracion():
-{
-	
-}
-{
-	<tWHILE>
-	expresion()
-	<tDO>
-	lista_instrucciones()
-	<tEND>
-}
 
 //... skip_line() generar en c para ver que hace
 
@@ -666,7 +625,15 @@ void lista_cero_o_mas_exps():
 {
 	( lista_una_o_mas_exps() )?
 }
-*/
+
+void lista_una_o_mas_exps():
+{
+	
+}
+{
+	expresion() ( <tC> expresion())*
+}
+
 void expresion() : 
 {
 
@@ -735,7 +702,7 @@ void factor():
 	| <tSBR> expresion() <tEBR>
 	| <tI2C> <tSBR> expresion() <tEBR>
 	| <tC2I> <tSBR> expresion() <tEBR>
-	//| LOOKAHEAD(2)  <tID> <tSBR> lista_cero_o_mas_exps() <tEBR>
+	| LOOKAHEAD(2)  <tID> <tSBR> lista_cero_o_mas_exps() <tEBR>
 	| LOOKAHEAD(2)  <tID> <tISQBR> expresion() <tESQBR>
 	| <tID>
 	| <tVINT>
@@ -743,4 +710,33 @@ void factor():
 	| <tVSTRING>
 	| <tTRUE>
 	| <tFALSE>
+}
+
+
+JAVACODE
+Set<Integer> infoParseException(ParseException e){
+	Set<Integer> esperados = new HashSet<Integer>();
+	System.err.println("ERROR_SINT: ('" + e.currentToken.next.image + "',"
+		+ e.currentToken.next.beginLine
+		+ "," + e.currentToken.next.beginColumn + ")");
+	System.err.println("Se esperaba uno de los siguientes tokens:");
+	for(int i = 0; i < e.expectedTokenSequences.length; i++){
+		esperados.add(e.expectedTokenSequences[i][0]);
+		System.err.println("\t" + adacConstants.tokenImage[e.expectedTokenSequences[i][0]]);
+	}
+	return esperados;
+}
+
+JAVACODE
+void recuperacionPanico(Token tInesperado, Set<Integer> conjSinc) {
+	System.err.println("----> Recupero en modo panico: " + 
+	"\n ----> saltando todo hasta token de conjunto de sincronizacion");
+	Token t = getNextToken();
+	while (!conjSinc.contains(t.kind) && t.kind != EOF) {
+		System.err.println("Descartando token (" 
+		+ adacConstants.tokenImage[t.kind]
+		+ "," + t.image + ")");
+		
+		t = getNextToken();
+	}
 }
