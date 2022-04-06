@@ -17,9 +17,22 @@ PARSER_BEGIN(adac)
 package traductor;
 
 import java.util.*;
+import lib.symbolTable.*;
+import lib.symbolTable.exceptions.*;
 
 public class adac {
 
+	//tabla de símbolos global
+	static SymbolTable st;
+
+	private static void initSymbolTable() {
+		boolean b;
+		String[] palsRes = {
+	    	"var","const","escribir"
+		};
+
+		st.insertReservedWords(palsRes);
+	}
 	
 
     public static void main(String[] args) {
@@ -40,6 +53,10 @@ public class adac {
         } 
 		catch (ParseException e){
 			System.err.println("PARSE_ERROR: " + e.getMessage());
+		}
+		catch(Exception e) {
+  			System.err.println("Finalizo traducción por detección de error no controlado: \n\t"
+  				               + e.getMessage());
 		}
     }
 }
@@ -368,38 +385,94 @@ void declaracion_variables():
 	( declaracion() <tPC> )*
 }
 
+//tipo_variable() lista_vars()
 void declaracion():
 {
-	
+	Symbol.Types tipo;
 }
 {
-	tipo_variable() lista_vars()
+	tipo = tipo_variable() 
+	lista_vars(tipo)
 }
 
-void tipo_variable():
-{
-
-}
-{
-	<tINT> | <tCHAR> | <tBOOL>
-}
-
-void lista_vars():
+//<tINT> | <tCHAR> | <tBOOL>
+Symbol.Types tipo_variable():
 {
 
 }
 {
-	variable() ( <tC> variable() )*
+	<tINT> 
+		{
+			return Symbol.Types.INT;
+		}
+	| <tCHAR> 
+		{
+			return Symbol.Types.CHAR;
+		}
+	| <tBOOL>
+		{
+			return Symbol.Types.BOOL;
+		}
 }
 
-void variable():
+//variable() ( <tC> variable() )*
+void lista_vars(Symbol.Types tp):
 {
-	
+}
+{
+	variable(tp) ( <tC> variable(tp) )*
+}
+
+/*
+	LOOKAHEAD(2)
+	<tID> <tISQBR> <tVINT> <tESQBR>
+	| <tID>
+*/
+void variable(Symbol.Types tp):
+{
+	Token t1, t2;
+	//Attributes at1 = new Attributes();
+	Sysmol s = null;
 }
 {
 	LOOKAHEAD(2)
-	<tID> <tISQBR> <tVINT> <tESQBR>	/*vectores*/
-	| <tID>
+	t1 = <tID> 
+	<tISQBR> 
+	t2 = <tVINT> 
+	<tESQBR>
+	{
+		//crear e instertar el simbolo
+		try{
+			s = new SymbolArray(t1.image, 0, Integer.parseInt(t2.image)-1,tp);
+			st.insertSymbol(s);
+		} 
+		catch (AlreadyDefinesSymbolException e) {
+			ErrorSemantico.deteccion(e, t1);
+		}
+		//at.code = t1.image + "[" +t2.image + "]";
+		//por que no comporbar el tipo del vector?
+	}
+	
+	| t1 = <tID>
+		{ //crear e insertar el simbolo
+			if(tp == Symbol.Types.INT)
+				s = new SymbolInt(t1.image);
+			}
+			else if(tp == Symbol.Types.CHAR){
+				s = new SymbolChar(t1.image);
+			}
+			else{ //tp == Symbol.Types.BOOL
+				s = new SymbolBool(t1.image);
+			}
+			try{
+				st.insertSymbol(s);
+			}
+			catch(AlreadyDefinesSymbolException e){
+				ErrorSemantico.deteccion(e, t1);
+			}
+			//at.code = t1.image;
+		}
+		
 }
 
 void declaracion_procs_funcs():
@@ -410,34 +483,85 @@ void declaracion_procs_funcs():
 	( declaracion_proc_func() )*
 }
 
-//...
+/*(<tPROC> | <tFUNCT> tipo_variable())
+	declaracion_proc_func2()
+*/
 void declaracion_proc_func():
 {
-
+	Symbol.Types tp1, tipo;
+	Sysmol s = null;
+	Attributes at1 = new Attributes();
 }
 {
-	(<tPROC> | <tFUNCT> tipo_variable())
-	declaracion_proc_func2()
+	(<tPROC> 
+		{
+			tp1 = Symbol.Types.PROCEDURE;
+		}
+	| <tFUNCT> 
+		{
+			tp1 = Symbol.Types.FUNCTION;
+		} 
+	tipo = tipo_variable()
+	)
+	declaracion_proc_func2(at1)
+	{
+		if(tp1 == Symbol.Types.FUNCTION){
+			try{
+				s = new SymbolFunction(String _name, ArrayList<Symbol> _parList, tipo);
+				st.insertSymbol(s);
+			}
+			catch (AlreadyDefinesSymbolException e) {
+				ErrorSemantico.deteccion(e, t1); //aqui un token??
+			}
+		} 
+		else{
+			try{
+				s = new SymbolProcedure(String _name,ArrayList<Symbol> _parList) ;
+				st.insertSymbol(s);
+			}
+			catch (AlreadyDefinesSymbolException e) {
+				ErrorSemantico.deteccion(e, t1); //aqui un token??
+			}
+		}
+		st.insertBlock();
+		
+		
+	}
 }
-//...
 
+/*
+cabecera_proc_func()
+declaracion_variables()
+declaracion_procs_funcs()
+bloque_sentencias()
+*/
 void declaracion_proc_func2():
 {
-
+	Attributes at1 = new Attributes(), at2 = new Attributes(),
+		at3 = new Attributes(), at4 = new Attributes();
 }
 {
-	cabecera_proc_func()
-	declaracion_variables()
-	bloque_sentencias()
+	cabecera_proc_func(at1)
+	//Meto funcion o procedimiento
+	declaracion_variables(at2)
+	declaracion_procs_funcs(at3) //Ojito
+	bloque_sentencias(at4)
 }
 
-//...
+//<tID> <tSBR> (argumentos_proc_func())? <tEBR> <tIS>
 void cabecera_proc_func():
 {
-	
+	Token t1;
 }
 {
-	<tID> <tSBR> (argumentos_proc_func())? <tEBR> <tIS>
+	t1 = <tID>  
+	<tSBR> 
+	(argumentos_proc_func())? 
+	<tEBR> 
+	<tIS>
+	{
+
+	}
 }
 
 void argumentos_proc_func(): 

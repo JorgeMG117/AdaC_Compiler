@@ -1,0 +1,113 @@
+procedure counting_sort is
+
+integer A[101], B[101];
+integer N, k;
+--------------------------------------------------------------------
+procedure inicilizarN (ref integer N) is
+integer d;
+begin
+    get (d);
+    while (d < 0)  or (d > 100) do
+        put ("Escribe un numero (>=0) y (<= 100): ");
+        get (d);
+        if (d < 0) or (d > 100) then
+            put_line("El numero debe ser >= 0 y <= 100.");
+        end
+    end
+    N := d;
+end
+--------------------------------------------------------------------
+
+function integer exp (val integer base, exponente) is
+
+integer sol;
+------------------------------------------------------------------------
+begin
+    sol := 1;
+    while (exponente > 0) do
+        sol := sol * base;
+        exponente := exponente - 1;
+    end
+    return sol;
+end
+
+------------------------------------------------------------------------
+
+
+procedure inicilizarAk (ref integer v[101]; val integer N; ref integer k) is
+integer i, d, max;
+begin
+    max := 0;
+    i := 0;
+    while i < N do
+        get (d);
+        while (d < 0)  or (d > 100) do
+            put ("Escribe un numero (>=0) y (<= 100): ");
+            get (d);
+            if (d < 0) or (d > 100) then
+                put_line("El numero debe ser >= 0 y <= 100.");
+		    end
+	    end
+        if d > max then
+            max := d;
+        end
+        v[i] := d;
+        i := i + 1;
+    end
+    k := max;
+end
+--------------------------------------------------------------------
+procedure sort(ref integer A[101]; ref integer B[101]; val integer k) is
+integer C[101];
+integer i;
+begin
+    i := 0;
+    while i <= k do
+        C[i] := 0;
+        i := i + 1;
+    end
+
+    i := 0;
+    while i < N do
+        C[A[i]] := C[A[i]] + 1;
+        i := i + 1;
+    end
+
+    i := 1;
+    while i <= k do
+        C[i] := C[i] + C[i-1];
+        i := i + 1;
+    end
+
+    i := N-1;
+    while i >= 0 do
+        C[A[i]] := C[A[i]] - 1;
+        B[C[A[i]]] := A[i];
+        
+        i := i - 1;
+    end
+
+end
+------------------------------------------------------
+procedure escribir_vector (ref integer A[101]; val integer N) is
+
+integer aux;
+
+begin
+	put_line("Mostrando vector solucion: ");
+    aux := 0;
+    while (aux < N) and (A[aux] <> 0)do
+        put_line(A[aux], ",");
+        aux := aux + 1;
+    end
+end
+------------------------------------------------------
+
+begin
+    put_line ("Longitud de vector a ordenar: ");
+    inicilizarN(N);
+    put_line ("Componentes del vector: ");
+    inicilizarAk(A, N, k);
+    sort(A, B, k);
+    escribir_vector(B, N);
+end

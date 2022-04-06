@@ -1,0 +1,101 @@
+------------------------------------------------------
+procedure seleccion_actividades is 
+integer C[101], F[101];
+integer i, j;
+integer A[101];
+integer indice;
+integer n;
+------------------------------------------------------
+procedure inicilizar (ref integer v[101]; val integer N) is
+integer i, d;
+------------------------------------------------------
+begin
+    i := 0;
+    while i < N do
+        get (d);
+        while (d < 0)  or (d > 100) do
+            put ("Escribe un numero (>=0) y (<= 100): ");
+            get (d);
+            if (d < 0) or (d > 100) then
+                put_line("El numero debe ser >= 0 y <= 100.");
+		    end
+	    end
+        v[i] := d;
+        i := i + 1;
+    end
+end
+
+------------------------------------------------------
+procedure inicilizarOrden (ref integer v[101]; val integer N) is
+integer i, d;
+------------------------------------------------------
+begin
+    i := 0;
+
+    get (d);
+    while (d < 0)  or (d > 100) do
+        put ("Escribe un numero (>=0) y (<= 100): ");
+        get (d);
+        if (d < 0) or (d > 100) then
+            put_line("El numero debe ser >= 0 y <= 100.");
+        end
+    end
+    v[i] := d;
+    i := i + 1;
+
+    while i < N do
+        get (d);
+        while (d < 0)  or (d > 100) or (v[i-1] > d) do
+            if (d < 0) or (d > 100) then
+                put_line("El numero debe ser >= 0 y <= 100.");
+                get (d);
+            else
+                if (v[i-1] > d) then
+                    put_line("El numero debe ser mayor que el anterior");
+                    get(d);
+                end
+		    end
+	    end
+        v[i] := d;
+        i := i + 1;
+    end
+end
+
+------------------------------------------------------
+procedure escribir_vector (ref integer A[101]; val integer N) is
+
+integer aux;
+------------------------------------------------------
+begin
+    aux := 0;
+    while (aux < N) and (A[aux] <> 0)do
+        put_line(A[aux], ",");
+        aux := aux + 1;
+    end
+end
+------------------------------------------------------
+begin
+    put_line("Introduzca el numero de elementos del vector: ");
+    get(n);
+    put_line("Introduzca el vector de inicio ordenado: ");
+    inicilizarOrden(C, n);
+    put_line("Introzuca el vector de final: ");
+    inicilizar(F, n);
+
+    indice := 1; 
+    A[0] := 1;
+    j := 0; 
+    i:= 1; 
+
+    while i<n do
+        if C[i] >= F[j] then
+            A[indice] := i+1;
+            indice := indice + 1;
+            j := i;
+        end
+        i := i + 1;
+    end
+
+    put_line("La solucion optima para el problema de la seleccion de actividades es: ");
+    escribir_vector(A, n);
+end

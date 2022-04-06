@@ -1,0 +1,68 @@
+-- Un número apocalíptico es aquel número natural n tal que 2^n contiene la secuencia 666.
+
+procedure numero_apocaliptico is
+
+integer i;
+------------------------------------------------------
+function integer dato () is
+
+integer d;
+------------------------------------------------------------------------
+begin
+	d := 0;
+
+	while( d <= 0) or (d > 30 )do
+		put ("Escribe un numero (30>n>0): ");
+		get (d);
+		if (d <= 0) or (d > 30) then
+			put_line("El numero debe ser 30>n>0.");
+		end
+	end
+
+    return d;
+end
+------------------------------------------------------
+
+function integer exp (val integer base, exponente) is
+
+integer sol;
+------------------------------------------------------------------------
+begin
+    sol := 1;
+    while (exponente > 0) do
+        sol := sol * base;
+        exponente := exponente - 1;
+    end
+    return sol;
+end
+
+------------------------------------------------------------------------
+
+function boolean apocaliptico(val integer n) is
+integer k, secuencia;
+boolean esta;
+begin
+	n := exp(2,n);
+    -- Comprobar si esta la secuencia 666
+    secuencia := 0;
+    while (secuencia < 3) and (n <> 0) do
+        if n mod 10 = 6 then
+            secuencia := secuencia + 1;
+        end
+        n := n div 10;
+    end
+
+    return secuencia = 3;
+end
+------------------------------------------------------
+
+begin
+    put_line ("Este programa pide un numero natural y calcula si es un numero apocaliptico.");
+	i:= dato ();
+	put_line ("");
+    if apocaliptico(i) then
+        put_line(i, " es un numero apocaliptico");
+    else
+       put_line(i, " no es un numero apocaliptico");
+    end
+end
