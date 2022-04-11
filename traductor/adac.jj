@@ -19,6 +19,8 @@ package traductor;
 import java.util.*;
 import lib.symbolTable.*;
 import lib.symbolTable.exceptions.*;
+import lib.attributes.*;
+import lib.errores.*;
 
 public class adac {
 
@@ -31,7 +33,10 @@ public class adac {
 	    	"var","const","escribir"
 		};
 
-		st.insertReservedWords(palsRes);
+		st = new SymbolTable(palsRes);
+		//st.insertReservedWords(palsRes);
+
+		//st.toString();
 	}
 	
 
@@ -45,7 +50,9 @@ public class adac {
 			else { //entrada desde fichero en args[0]
 	            parser = new adac(new java.io.FileInputStream(args[0])); 
 			}
+			initSymbolTable();
 			parser.programa(); //invoca símbolo inicial de la gramática
+			System.out.println(st.toString());
 		} catch (java.io.FileNotFoundException e) {
 			System.err.println ("Fichero " + args[0] + " no encontrado.");
 		} catch (TokenMgrError e) {
@@ -354,7 +361,7 @@ TOKEN :
 
 }
 
-TOKEN: 
+TOKEN:
 {
 	< tDEF: ~[] >		
 		{
@@ -375,24 +382,39 @@ void programa () :
 	declaracion_variables()
 	declaracion_procs_funcs()
 	bloque_sentencias()
+	
 }
 
+//( declaracion() <tPC> )*
 void declaracion_variables():
 {
-
+	Attributes at1 = new Attributes();
 }
 {
-	( declaracion() <tPC> )*
+	{at1.parClass = Symbol.ParameterClass.NONE;}
+	( declaracion(at1) <tPC> )*	
+	//meter variables en la tabla
+	{
+		for (int i=0;i<at1.parList.size();i++) {
+			try{
+				st.insertSymbol(at1.parList.get(i));
+			}	
+			catch (AlreadyDefinedSymbolException e) {
+				//ErrorSemantico.deteccion(e, t1); //DE DONDE SACAMOS EL TOKEN????
+			}
+		}
+	}
 }
 
 //tipo_variable() lista_vars()
-void declaracion():
+void declaracion(Attributes at):
 {
-	Symbol.Types tipo;
+	
 }
 {
-	tipo = tipo_variable() 
-	lista_vars(tipo)
+	at.type = tipo_variable() 
+	lista_vars(at)
+	
 }
 
 //<tINT> | <tCHAR> | <tBOOL>
@@ -416,11 +438,11 @@ Symbol.Types tipo_variable():
 }
 
 //variable() ( <tC> variable() )*
-void lista_vars(Symbol.Types tp):
+void lista_vars(Attributes at):
 {
 }
 {
-	variable(tp) ( <tC> variable(tp) )*
+	variable(at) ( <tC> variable(at) )*
 }
 
 /*
@@ -428,11 +450,11 @@ void lista_vars(Symbol.Types tp):
 	<tID> <tISQBR> <tVINT> <tESQBR>
 	| <tID>
 */
-void variable(Symbol.Types tp):
+void variable(Attributes at):
 {
 	Token t1, t2;
 	//Attributes at1 = new Attributes();
-	Sysmol s = null;
+	Symbol s = null;
 }
 {
 	LOOKAHEAD(2)
@@ -442,35 +464,23 @@ void variable(Symbol.Types tp):
 	<tESQBR>
 	{
 		//crear e instertar el simbolo
-		try{
-			s = new SymbolArray(t1.image, 0, Integer.parseInt(t2.image)-1,tp);
-			st.insertSymbol(s);
-		} 
-		catch (AlreadyDefinesSymbolException e) {
-			ErrorSemantico.deteccion(e, t1);
-		}
-		//at.code = t1.image + "[" +t2.image + "]";
-		//por que no comporbar el tipo del vector?
+		s = new SymbolArray(t1.image, 0, Integer.parseInt(t2.image)-1,at.type,at.parClass);
+		at.parList.add(s);
 	}
 	
 	| t1 = <tID>
 		{ //crear e insertar el simbolo
-			if(tp == Symbol.Types.INT)
-				s = new SymbolInt(t1.image);
+			if(at.type == Symbol.Types.INT){
+				s = new SymbolInt(t1.image, at.parClass);
 			}
-			else if(tp == Symbol.Types.CHAR){
-				s = new SymbolChar(t1.image);
+			else if(at.type == Symbol.Types.CHAR){
+				s = new SymbolChar(t1.image, at.parClass);
 			}
 			else{ //tp == Symbol.Types.BOOL
-				s = new SymbolBool(t1.image);
+				s = new SymbolBool(t1.image, at.parClass);
 			}
-			try{
-				st.insertSymbol(s);
-			}
-			catch(AlreadyDefinesSymbolException e){
-				ErrorSemantico.deteccion(e, t1);
-			}
-			//at.code = t1.image;
+			//System.out.println(s.toString());
+			at.parList.add(s); 
 		}
 		
 }
@@ -488,45 +498,19 @@ void declaracion_procs_funcs():
 */
 void declaracion_proc_func():
 {
-	Symbol.Types tp1, tipo;
-	Sysmol s = null;
+	
 	Attributes at1 = new Attributes();
 }
 {
 	(<tPROC> 
-		{
-			tp1 = Symbol.Types.PROCEDURE;
-		}
-	| <tFUNCT> 
-		{
-			tp1 = Symbol.Types.FUNCTION;
-		} 
-	tipo = tipo_variable()
-	)
+		{at1.typeProcFunc = Symbol.Types.PROCEDURE;}
+	| <tFUNCT>
+		{at1.typeProcFunc = Symbol.Types.FUNCTION;
+		at1.type = tipo_variable();})
+	
+	
 	declaracion_proc_func2(at1)
-	{
-		if(tp1 == Symbol.Types.FUNCTION){
-			try{
-				s = new SymbolFunction(String _name, ArrayList<Symbol> _parList, tipo);
-				st.insertSymbol(s);
-			}
-			catch (AlreadyDefinesSymbolException e) {
-				ErrorSemantico.deteccion(e, t1); //aqui un token??
-			}
-		} 
-		else{
-			try{
-				s = new SymbolProcedure(String _name,ArrayList<Symbol> _parList) ;
-				st.insertSymbol(s);
-			}
-			catch (AlreadyDefinesSymbolException e) {
-				ErrorSemantico.deteccion(e, t1); //aqui un token??
-			}
-		}
-		st.insertBlock();
-		
-		
-	}
+	
 }
 
 /*
@@ -535,43 +519,90 @@ declaracion_variables()
 declaracion_procs_funcs()
 bloque_sentencias()
 */
-void declaracion_proc_func2():
-{
-	Attributes at1 = new Attributes(), at2 = new Attributes(),
-		at3 = new Attributes(), at4 = new Attributes();
-}
-{
-	cabecera_proc_func(at1)
-	//Meto funcion o procedimiento
-	declaracion_variables(at2)
-	declaracion_procs_funcs(at3) //Ojito
-	bloque_sentencias(at4)
-}
-
-//<tID> <tSBR> (argumentos_proc_func())? <tEBR> <tIS>
-void cabecera_proc_func():
-{
-	Token t1;
-}
-{
-	t1 = <tID>  
-	<tSBR> 
-	(argumentos_proc_func())? 
-	<tEBR> 
-	<tIS>
-	{
-
-	}
-}
-
-void argumentos_proc_func(): 
+void declaracion_proc_func2(Attributes at):
 {
 	
 }
 {
-	(<tREF> | <tVAL>)
+	cabecera_proc_func(at)
+	declaracion_variables()
+	declaracion_procs_funcs() //Ojito
+	bloque_sentencias() //<- atributo
+	{
+		System.out.println(st.toString());
+		st.removeBlock();
+	}
+}
+
+//<tID> <tSBR> (argumentos_proc_func())? <tEBR> <tIS>
+void cabecera_proc_func(Attributes at):
+{
+	Token t1;
+	Attributes at1 = new Attributes();
+	Symbol s = null;
+}
+{
+	t1 = <tID>  
+	<tSBR> 
+	(argumentos_proc_func(at1))? 
+	<tEBR> 
+	<tIS>
+	{
+
+		if(at.typeProcFunc == Symbol.Types.PROCEDURE){
+			try{
+				s = new SymbolProcedure(t1.image, at1.parList) ;
+				st.insertSymbol(s);
+			}
+			catch (AlreadyDefinedSymbolException e) {
+				ErrorSemantico.deteccion(e, t1); //aqui un token??
+			}
+		} 
+		else{
+			try{
+				s = new SymbolFunction(t1.image, at1.parList, at.type);
+				st.insertSymbol(s);
+			}
+			catch (AlreadyDefinedSymbolException e) {
+				ErrorSemantico.deteccion(e, t1); //aqui un token??
+			}
+		}
+		st.insertBlock();
+		
+		//Insertamos los argumentos en la tabla de simbolos
+		for (int i=0;i<at1.parList.size();i++) {
+			try{
+				st.insertSymbol(at1.parList.get(i));
+			}
+			catch (AlreadyDefinedSymbolException e) {
+				//ErrorSemantico.deteccion(e, t1); //HABRIA QUE PONER ID DE ARGS????
+			}
+		}
+	}
+}
+
+/*	(<tREF> | <tVAL>)
 	declaracion()
-	(<tPC> (<tREF> | <tVAL>) declaracion())*
+	(<tPC> (<tREF> | <tVAL>) declaracion())*/
+void argumentos_proc_func(Attributes at1): 
+{
+	
+}
+{
+	(<tREF> 
+	{at1.parClass = Symbol.ParameterClass.REF;}
+	| <tVAL>
+	{at1.parClass = Symbol.ParameterClass.VAL;})
+
+
+	declaracion(at1)
+	(<tPC> 
+	
+	(<tREF> 
+	{at1.parClass = Symbol.ParameterClass.REF;}
+	| <tVAL> 
+	{at1.parClass = Symbol.ParameterClass.VAL;}) 
+	declaracion(at1))*
 }
 
 

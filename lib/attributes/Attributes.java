@@ -22,9 +22,11 @@ public class Attributes implements Cloneable {
     public String valString;
     //COMPLETAR
     public ArrayList<Symbol> parList;
+    public Symbol.Types typeProcFunc;
 
     public Attributes() {
         //COMPLETAR
+        parList = new ArrayList<Symbol>();
     }
 
     public Attributes clone() {
