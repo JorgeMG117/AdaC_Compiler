@@ -752,11 +752,13 @@ void inst_asignacion():
 	//tiene el tipo correcto
 	//la expresion es del mismo tipo
 	Attributes at1 = new Attributes();
+	Attributes at2 = new Attributes();
 }
 {
 	asignable(at1)
 	<tASSIGN>
-	expresion()
+	expresion(at2)
+	{inst_asignacion_1(at1, at2);}
 }
 
 void lista_una_o_mas_asignable():
@@ -870,12 +872,15 @@ void lista_una_o_mas_exps():
 	expresion() ( <tC> expresion())*
 }
 
-void expresion() : 
+void expresion(Attributes at) : 
 {
+	Attributes at1 = new Attributes();
 	Attributes at1 = new Attributes();
 }
 {
-	expresion_simple(at1) ( operador_relacional() expresion_simple(at1) )?
+	expresion_simple(at1) 
+	{expresion_1(at, at1);}
+	( operador_relacional() expresion_simple(at2) {expresion_2(at, at1, at2);} )?
 }  
 
 void operador_relacional():
@@ -960,14 +965,15 @@ void operador_multiplicativo():
 void factor(Attributes at):
 {
 	Token t;
+	Attributes at1 = new Attributes();
 }
 {
-	<tNOT> factor()
-	| <tSBR> expresion() <tEBR>
-	| <tI2C> <tSBR> expresion() <tEBR>
-	| <tC2I> <tSBR> expresion() <tEBR>
-	| LOOKAHEAD(2)  <tID> <tSBR> lista_cero_o_mas_exps() <tEBR>
-	| LOOKAHEAD(2)  <tID> <tISQBR> expresion() <tESQBR>
+	<tNOT> factor(at1) {factor_1(at, at1);} //SOLO SE PUEDE NEGAR BOOL??
+	| <tSBR> expresion(at1) <tEBR> {factor_2(at, at1);}
+	| <tI2C> <tSBR> expresion(at1) <tEBR> {factor_3(at, at1);}
+	| <tC2I> <tSBR> expresion(at1) <tEBR> {factor_4(at, at1);}
+	| LOOKAHEAD(2) t = <tID> <tSBR> lista_cero_o_mas_exps() <tEBR> {factor_5(t, at);}
+	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> {factor_6(t, at, at1);}
 	| <tID> {factor_7();}
 	| t = <tVINT> {factor_8(t, at);}
 	| t = <tVCHAR> {factor_9(t, at);}
