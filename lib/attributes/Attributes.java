@@ -23,10 +23,20 @@ public class Attributes implements Cloneable {
     //COMPLETAR
     public ArrayList<Symbol> parList;
     public Symbol.Types typeProcFunc;
+    public String nombre;
 
     public Attributes() {
         //COMPLETAR
         parList = new ArrayList<Symbol>();
+        //undefined typo
+        type = Symbol.Types.UNDEFINED;
+
+        valInt = 0;
+        valBool = false;
+        valChar = ' ';
+        valString = null;
+        typeProcFunc = Symbol.Types.UNDEFINED;
+        nombre = null;
     }
 
     public Attributes clone() {

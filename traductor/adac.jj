@@ -21,11 +21,13 @@ import lib.symbolTable.*;
 import lib.symbolTable.exceptions.*;
 import lib.attributes.*;
 import lib.errores.*;
+import lib.tools.*;
 
 public class adac {
 
 	//tabla de símbolos global
 	static SymbolTable st;
+	static SemanticFunctions sf;
 
 	private static void initSymbolTable() {
 		boolean b;
@@ -42,6 +44,8 @@ public class adac {
 
     public static void main(String[] args) {
     	adac parser;
+		
+
 
     	try {
 	    	if(args.length == 0) { //entrada desde stdin
@@ -51,8 +55,9 @@ public class adac {
 	            parser = new adac(new java.io.FileInputStream(args[0])); 
 			}
 			initSymbolTable();
+			sf = new SemanticFunctions(st);
 			parser.programa(); //invoca símbolo inicial de la gramática
-			System.out.println(st.toString());
+			//System.out.println(st.toString());
 		} catch (java.io.FileNotFoundException e) {
 			System.err.println ("Fichero " + args[0] + " no encontrado.");
 		} catch (TokenMgrError e) {
@@ -371,17 +376,42 @@ TOKEN:
 
 
 //------------ Símbolo inicial de la gramática. Para análisis léxico no hace falta más
-void programa () : 
-{
-
-}
-{
-	<tPROC>
+/*	<tPROC>
 	<tID>
 	<tIS>
 	declaracion_variables()
 	declaracion_procs_funcs()
+	bloque_sentencias()*/ 
+void programa () : 
+{
+	Token t;
+	//Attributes at1 = new Attributes();
+	Symbol s = null;
+}
+{
+	<tPROC>
+	t = <tID>
+	<tIS>
+	{
+		try{
+			s = new SymbolProcedure(t.image, null) ;
+			st.insertSymbol(s);
+		}
+		catch (AlreadyDefinedSymbolException e) {
+			ErrorSemantico.deteccion(e, t); //aqui un token??
+		}
+	}
+
+	declaracion_variables()
+	declaracion_procs_funcs()
 	bloque_sentencias()
+
+	{
+		System.out.println("******************");
+		System.out.println("Procesando " + t.image);
+		System.out.println("******************");
+		System.out.println(st.toString());
+	}
 	
 }
 
@@ -529,6 +559,9 @@ void declaracion_proc_func2(Attributes at):
 	declaracion_procs_funcs() //Ojito
 	bloque_sentencias() //<- atributo
 	{
+		System.out.println("******************");
+		System.out.println("Procesando " + at.nombre);
+		System.out.println("******************");
 		System.out.println(st.toString());
 		st.removeBlock();
 	}
@@ -548,7 +581,7 @@ void cabecera_proc_func(Attributes at):
 	<tEBR> 
 	<tIS>
 	{
-
+		at.nombre = t1.image;
 		if(at.typeProcFunc == Symbol.Types.PROCEDURE){
 			try{
 				s = new SymbolProcedure(t1.image, at1.parList) ;
@@ -704,36 +737,84 @@ void inst_return():
 {
 
 }
-{
+{//que este en funcion y tipo funcion sea el mismo
 	<tRETURN> expresion()
 }
 
+/*	
+	asignable()
+	<tASSIGN>
+	expresion()
+*/
 void inst_asignacion():
 {
-
+	//asinabele esta en la tabla
+	//tiene el tipo correcto
+	//la expresion es del mismo tipo
+	Attributes at1 = new Attributes();
 }
 {
-	asignable()
+	asignable(at1)
 	<tASSIGN>
 	expresion()
 }
 
 void lista_una_o_mas_asignable():
 {
-
+	Attributes at1 = new Attributes();	//para que compile
 }
 {
-	asignable() ( <tC> asignable())*
+	asignable(at1) ( <tC> asignable(at1))*
 }
 
-void asignable():
-{
 
+/*	LOOKAHEAD(2)
+	<tID> <tISQBR> expresion_simple() <tESQBR>	//la posicion de un vector puede venir de una exp_simple
+	| <tID>*/
+void asignable(Attributes at):
+{
+	//Symbol s = null;
+	Token t;
+	Attributes at1 = new Attributes(); //compilar expresion simpel
+	Symbol s =  null;
+	//SymbolArray s1 = null;
 }
 {
 	LOOKAHEAD(2)
-	<tID> <tISQBR> expresion_simple() <tESQBR>	//la posicion de un vector puede venir de una exp_simple
-	| <tID>
+	t = <tID> 
+	/*{
+		//comprobar si eexiste
+		try{
+			s = st.getSymbol(t.image);
+			//comprobar que es tipo array
+			if(s.type == Symbol.Types.ARRAY){
+				at.type = ((SymbolArray)s).baseType;
+			}
+			else{
+				//Mensaje error ErrorSemantico
+				ErrorSemantico.deteccion("La variable no es un array", t);
+			}
+		}
+		catch(SymbolNotFoundException e){
+			ErrorSemantico.deteccion(e, t);
+		}
+		
+	}*/
+	{sf.asignable_1(t, at);}
+	<tISQBR> expresion_simple(at1) <tESQBR>	//la posicion de un vector puede venir de una exp_simple
+	{
+
+	}
+	| t = <tID>
+	{
+		try{
+			s = st.getSymbol (t.image);
+			at.type = s.type;
+		}
+		catch(SymbolNotFoundException e){
+			ErrorSemantico.deteccion(e, t);
+		}
+	}
 }
 
 void inst_escribir():
@@ -791,10 +872,10 @@ void lista_una_o_mas_exps():
 
 void expresion() : 
 {
-
+	Attributes at1 = new Attributes();
 }
 {
-	expresion_simple() ( operador_relacional() expresion_simple() )?
+	expresion_simple(at1) ( operador_relacional() expresion_simple(at1) )?
 }  
 
 void operador_relacional():
@@ -810,16 +891,44 @@ void operador_relacional():
 	| <tNOTEQ>
 }
 
-void expresion_simple(): 
+/*
+(<tPOS>| <tNEG>)? termino() ( operador_aditivo(at2) termino(at3))*
+*/
+void expresion_simple(Attributes at): 
 {
-
+	Attributes at1 = new Attributes();
+	Attributes at2 = new Attributes();
+	Attributes at3 = new Attributes();
 }
 {
-	( <tPOS> | <tNEG> )?
-	termino() ( operador_aditivo() termino() )*
+	( <tPOS>
+	{
+		at.type = Symbol.Types.INT;
+	}
+	 | <tNEG>
+	 {
+		at.type = Symbol.Types.INT;
+	 }
+	  )?
+	termino(at1)
+	{
+		if(at.type == Symbol.Types.INT && at1.type != Symbol.Types.INT){
+			//Error Semantico
+		}
+		else{
+			at.type = at1.type;
+		}
+	}
+	 ( operador_aditivo(at2) termino(at3)
+	 {
+		if(at1.type == at2.type){
+
+		}
+	 }
+	  )*
 }
 
-void operador_aditivo():
+void operador_aditivo(Attributes at):
 {
 
 }
@@ -829,7 +938,7 @@ void operador_aditivo():
 	| <tOR>
 }
 
-void termino():
+void termino(Attributes at):
 {
 	
 }
@@ -848,9 +957,9 @@ void operador_multiplicativo():
 	| <tAND>
 }
 
-void factor():
+void factor(Attributes at):
 {
-
+	Token t;
 }
 {
 	<tNOT> factor()
@@ -859,12 +968,12 @@ void factor():
 	| <tC2I> <tSBR> expresion() <tEBR>
 	| LOOKAHEAD(2)  <tID> <tSBR> lista_cero_o_mas_exps() <tEBR>
 	| LOOKAHEAD(2)  <tID> <tISQBR> expresion() <tESQBR>
-	| <tID>
-	| <tVINT>
-	| <tVCHAR>
-	| <tVSTRING>
-	| <tTRUE>
-	| <tFALSE>
+	| <tID> {factor_7();}
+	| t = <tVINT> {factor_8(t, at);}
+	| t = <tVCHAR> {factor_9(t, at);}
+	| t = <tVSTRING> {factor_10(t, at);}
+	| <tTRUE> {factor_11(at);}
+	| <tFALSE> {factor_12(at);}
 }
 
 
