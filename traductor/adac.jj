@@ -419,21 +419,21 @@ void programa () :
 void declaracion_variables():
 {
 	Attributes at1 = new Attributes();
+	//at1.parClass = Symbol.ParameterClass.NONE;//Constructor del atributes!!
 }
 {
-	{at1.parClass = Symbol.ParameterClass.NONE;}
 	( declaracion(at1) <tPC> )*	
 	//meter variables en la tabla
-	{
+	/*{//Mejor meter en tabla de simbolos en declaracion!!
 		for (int i=0;i<at1.parList.size();i++) {
 			try{
 				st.insertSymbol(at1.parList.get(i));
 			}	
 			catch (AlreadyDefinedSymbolException e) {
-				//ErrorSemantico.deteccion(e, t1); //DE DONDE SACAMOS EL TOKEN????
+				ErrorSemantico.deteccion(e, token); //DE DONDE SACAMOS EL TOKEN????
 			}
 		}
-	}
+	}*/
 }
 
 //tipo_variable() lista_vars()
@@ -443,7 +443,7 @@ void declaracion(Attributes at):
 }
 {
 	at.type = tipo_variable() 
-	lista_vars(at)
+	lista_vars(at)//Opcion1: Meter aqui los simbolos en la tabla, sintetizar lista de ids !!
 	
 }
 
@@ -480,7 +480,7 @@ void lista_vars(Attributes at):
 	<tID> <tISQBR> <tVINT> <tESQBR>
 	| <tID>
 */
-void variable(Attributes at):
+void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en tabla se simbolos !!
 {
 	Token t1, t2;
 	//Attributes at1 = new Attributes();
@@ -495,7 +495,15 @@ void variable(Attributes at):
 	{
 		//crear e instertar el simbolo
 		s = new SymbolArray(t1.image, 0, Integer.parseInt(t2.image)-1,at.type,at.parClass);
-		at.parList.add(s);
+		if(at.parClass == Symbol.ParameterClass.NONE){
+			try{
+				st.insertSymbol(s);
+			}	
+			catch (AlreadyDefinedSymbolException e) {
+				ErrorSemantico.deteccion(e, t1); //DE DONDE SACAMOS EL TOKEN????
+			}
+		} else{at.parList.add(s);}
+		
 	}
 	
 	| t1 = <tID>
@@ -510,7 +518,14 @@ void variable(Attributes at):
 				s = new SymbolBool(t1.image, at.parClass);
 			}
 			//System.out.println(s.toString());
-			at.parList.add(s); 
+			if(at.parClass == Symbol.ParameterClass.NONE){
+				try{
+					st.insertSymbol(s);
+				}	
+				catch (AlreadyDefinedSymbolException e) {
+					ErrorSemantico.deteccion(e, t1); //DE DONDE SACAMOS EL TOKEN????
+				}
+			} else{at.parList.add(s);}
 		}
 		
 }
@@ -640,29 +655,29 @@ void argumentos_proc_func(Attributes at1):
 
 
 //...
-void bloque_sentencias():
+void bloque_sentencias(Attributes at):
 {
 
 }
 {
 	< tBEGIN> 
-	lista_instrucciones()
+	lista_instrucciones(at)
 	< tEND >
 }
 
-void instruccion():
+void instruccion(Attributes at):
 {
-
+	//Attributes at1 = new Attributes();
 }
 {
 	try{
 		inst_escribir() <tPC> 
 		| inst_escribir_linea() <tPC> 
-		| inst_return() <tPC> 
+		| inst_return(at) <tPC> 
 		| inst_saltar_linea() <tPC> 
 		| inst_leer() <tPC>
 		| inst_iteracion()
-		| inst_seleccion()
+		| inst_seleccion(at)
 		| LOOKAHEAD(2)
 			inst_invoc_proc() <tPC> 
 		| inst_asignacion() <tPC> 
@@ -675,30 +690,31 @@ void instruccion():
 
 void inst_invoc_proc(): 
 {
+	Token t;
 }
 {
 	//funcion( )
-	<tID> <tSBR> lista_cero_o_mas_exps() <tEBR>
+	t = <tID> <tSBR> lista_cero_o_mas_exps(t) <tEBR>
 }
 
-void lista_instrucciones():
+void lista_instrucciones(Attributes at):
 {
 
 }
 {
-	(instruccion())*
+	(instruccion(at))*
 }
 
-void inst_seleccion():
+void inst_seleccion(Attributes at):
 {
-
+	Attributes at1 = new Attributes();//Compilacion
 }
 {
 	try {
-		<tIF> expresion() <tTHEN> lista_instrucciones()		
+		<tIF> expresion(at1) <tTHEN> lista_instrucciones(at)		
 		//if cond then		  instr
 		//else 	  if cond then		   instr
-		(<tELSE> lista_instrucciones())?
+		(<tELSE> lista_instrucciones(at))?
 		//else    instr
 		<tEND>
 	} catch (ParseException e) {
@@ -713,13 +729,13 @@ void inst_seleccion():
 
 void inst_iteracion():
 {
-
+	Attributes at1 = new Attributes();//Compilacion
 }
 {
 
 	try {
-		<tWHILE> expresion() <tDO>		
-		lista_instrucciones()
+		<tWHILE> expresion(at1) <tDO>		
+		lista_instrucciones(at1)
 		<tEND>
 	} catch (ParseException e) {
 		//Set<Integer> conjSinc = infoParseException(e);
@@ -733,12 +749,15 @@ void inst_iteracion():
 
 }
 
-void inst_return():
+//<tRETURN> expresion()
+void inst_return(Attributes at):
 {
-
+	Attributes at1 = new Attributes();
+	Token t;
 }
 {//que este en funcion y tipo funcion sea el mismo
-	<tRETURN> expresion()
+	t = <tRETURN> 
+	expresion(at1) {sf.inst_return_1(at, at1, t);}
 }
 
 /*	
@@ -758,15 +777,15 @@ void inst_asignacion():
 	asignable(at1)
 	<tASSIGN>
 	expresion(at2)
-	{inst_asignacion_1(at1, at2);}
+	{sf.inst_asignacion_1(at1, at2);}
 }
 
-void lista_una_o_mas_asignable():
+void lista_una_o_mas_asignable(Attributes at):
 {
-	Attributes at1 = new Attributes();	//para que compile
+	//Attributes at1 = new Attributes();	//para que compile
 }
 {
-	asignable(at1) ( <tC> asignable(at1))*
+	asignable(at) ( <tC> asignable(at))*
 }
 
 
@@ -778,7 +797,6 @@ void asignable(Attributes at):
 	//Symbol s = null;
 	Token t;
 	Attributes at1 = new Attributes(); //compilar expresion simpel
-	Symbol s =  null;
 	//SymbolArray s1 = null;
 }
 {
@@ -803,36 +821,33 @@ void asignable(Attributes at):
 		
 	}*/
 	{sf.asignable_1(t, at);}
-	<tISQBR> expresion_simple(at1) <tESQBR>	//la posicion de un vector puede venir de una exp_simple
+	<tISQBR> expresion_simple(at1)  <tESQBR>	//la posicion de un vector puede venir de una exp_simple
 	{
-
+		sf.asignable_2(t, at1);
 	}
 	| t = <tID>
 	{
-		try{
-			s = st.getSymbol (t.image);
-			at.type = s.type;
-		}
-		catch(SymbolNotFoundException e){
-			ErrorSemantico.deteccion(e, t);
-		}
+		sf.asignable_3(t, at);
+		
 	}
 }
 
+//put acepta todo tipo de variables
 void inst_escribir():
 {
-
+	Token t;
 }
 {
-	<tPUT> <tSBR> lista_una_o_mas_exps() <tEBR>	//iguales pero con un salto ed linea
+	t = <tPUT> <tSBR> lista_una_o_mas_exps(t) <tEBR>	//iguales pero con un salto de linea
 }
 
+//put_line acepta todo tipo de variables
 void inst_escribir_linea()://lista 0 a mas expresiones
 {
-
+	Token t;
 }
 {
-	<tPUTL> <tSBR> lista_cero_o_mas_exps() <tEBR>
+	t = <tPUTL> <tSBR> lista_cero_o_mas_exps(t) <tEBR>
 }
 
 
@@ -847,40 +862,53 @@ void inst_saltar_linea():
 
 void inst_leer(): //lista de uno o mas asignables
 {
-
+	Attributes at1 = new Attributes(); 
+	Token t;
 }
 {
-	<tGET> <tSBR> lista_una_o_mas_asignable() <tEBR>	//get (lista_var);
+	t = <tGET> <tSBR> lista_una_o_mas_asignable(at1) <tEBR>	//get (lista_var);
+	{sf.inst_leer_1(t, at1);}
 }
 
 
 //... skip_line() generar en c para ver que hace
 
-void lista_cero_o_mas_exps():
+void lista_cero_o_mas_exps(Token t):
 {
 
 }
 {
-	( lista_una_o_mas_exps() )?
+	( lista_una_o_mas_exps(t) )?
 }
 
-void lista_una_o_mas_exps():
+//expresion(at1) ( <tC> expresion(at2) )*
+void lista_una_o_mas_exps(Token t):
 {
+	Attributes at1 = new Attributes();
 	
+	//SymbolProcedure sp = new SymbolProcedure(((SymbolProcedure)s).name, ((SymbolProcedure) s).parList);
+	//SymbolProcedure sp = new SymbolProcedure(s.name, new ArrayList<Symbol>());
+	//sp.parList = ((SymbolProcedure) s).parList;
+	//s = new SymbolProcedure(t1.image, at1.parList);
+	int i = 0;
 }
-{
-	expresion() ( <tC> expresion())*
+{//Comprobar tipo de la expresion, si es por referencia no me vale cualquier expresion, sera asignable
+//nombre de variable o componente del vector									//Duda recorrer parametros dudoso
+//v[]
+//func(v)
+	expresion(at1) {sf.lista_una_o_mas_exps_1(t, i, at1);} //aqui tenemos token para err :)
+	( <tC> expresion(at1) {sf.lista_una_o_mas_exps_1(t, i, at1);})* 
 }
+
 
 void expresion(Attributes at) : 
 {
 	Attributes at1 = new Attributes();
-	Attributes at1 = new Attributes();
+	//Attributes at2 = new Attributes();
 }
 {
-	expresion_simple(at1) 
-	{expresion_1(at, at1);}
-	( operador_relacional() expresion_simple(at2) {expresion_2(at, at1, at2);} )?
+	expresion_simple(at) 
+	( operador_relacional() expresion_simple(at1) {sf.expresion_1(at, at1);} )?
 }  
 
 void operador_relacional():
@@ -906,60 +934,55 @@ void expresion_simple(Attributes at):
 	Attributes at3 = new Attributes();
 }
 {
-	( <tPOS>
-	{
-		at.type = Symbol.Types.INT;
-	}
-	 | <tNEG>
-	 {
-		at.type = Symbol.Types.INT;
-	 }
-	  )?
+	((<tPOS>| <tNEG>) {sf.expresion_simple_1(at);})? //se esta pasando todo lo necesario de at1 a at??
+
 	termino(at1)
 	{
-		if(at.type == Symbol.Types.INT && at1.type != Symbol.Types.INT){
-			//Error Semantico
-		}
-		else{
-			at.type = at1.type;
-		}
+		sf.expresion_simple_2(at, at1);
 	}
+	 
 	 ( operador_aditivo(at2) termino(at3)
 	 {
-		if(at1.type == at2.type){
-
-		}
+		sf.expresion_simple_3(at1, at2, at3);
 	 }
 	  )*
 }
 
+// <tPOS> 
+// | <tNEG>
+// | <tOR> 
 void operador_aditivo(Attributes at):
 {
 
 }
 {
-	<tPOS>
-	| <tNEG>
-	| <tOR>
+	<tPOS> {at.type = Symbol.Types.INT;}
+	| <tNEG> {at.type = Symbol.Types.INT;}
+	| <tOR> {at.type = Symbol.Types.BOOL;}
 }
 
+//factor() ( operador_multiplicativo() factor() )*
 void termino(Attributes at):
 {
-	
+	Attributes at1 = new Attributes();
+	Attributes at2 = new Attributes();
+	Attributes at3 = new Attributes();
 }
 {
-	factor() ( operador_multiplicativo() factor() )*
+	factor(at)
+	( operador_multiplicativo(at2) factor(at3) {sf.termino_2(at, at2, at3);})* //Esto se esta ejecutando??
+
 }
 
-void operador_multiplicativo():
+void operador_multiplicativo(Attributes at):
 {
 
 }
 {
-	<tMUL>
-	| <tMOD>
-	| <tDIV>
-	| <tAND>
+	<tMUL> {at.type = Symbol.Types.INT;}
+	| <tMOD> {at.type = Symbol.Types.INT;}
+	| <tDIV> {at.type = Symbol.Types.INT;}
+	| <tAND> {at.type = Symbol.Types.BOOL;}
 }
 
 void factor(Attributes at):
@@ -968,18 +991,18 @@ void factor(Attributes at):
 	Attributes at1 = new Attributes();
 }
 {
-	<tNOT> factor(at1) {factor_1(at, at1);} //SOLO SE PUEDE NEGAR BOOL??
-	| <tSBR> expresion(at1) <tEBR> {factor_2(at, at1);}
-	| <tI2C> <tSBR> expresion(at1) <tEBR> {factor_3(at, at1);}
-	| <tC2I> <tSBR> expresion(at1) <tEBR> {factor_4(at, at1);}
-	| LOOKAHEAD(2) t = <tID> <tSBR> lista_cero_o_mas_exps() <tEBR> {factor_5(t, at);}
-	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> {factor_6(t, at, at1);}
-	| <tID> {factor_7();}
-	| t = <tVINT> {factor_8(t, at);}
-	| t = <tVCHAR> {factor_9(t, at);}
-	| t = <tVSTRING> {factor_10(t, at);}
-	| <tTRUE> {factor_11(at);}
-	| <tFALSE> {factor_12(at);}
+	<tNOT> factor(at1) {sf.factor_1(at, at1);}//No es ni variable ni componente de vector, ponerlo
+	| <tSBR> expresion(at1) <tEBR> {sf.factor_2(at, at1);}//Lo mismo
+	| <tI2C> <tSBR> expresion(at1) <tEBR> {sf.factor_3(at, at1);}//Lo mismo
+	| <tC2I> <tSBR> expresion(at1) <tEBR> {sf.factor_4(at, at1);}//Lo mismo
+	| LOOKAHEAD(2) t = <tID> <tSBR> lista_cero_o_mas_exps(t) <tEBR> {sf.factor_5(t, at);}//Lo mismo
+	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> {sf.factor_6(t, at, at1);}//Es componente del vector no es var
+	| t = <tID> {sf.factor_7(t, at);}
+	| t = <tVINT> {sf.factor_8(t, at);}
+	| t = <tVCHAR> {sf.factor_9(t, at);}
+	| t = <tVSTRING> {sf.factor_10(t, at);}
+	| <tTRUE> {sf.factor_11(at);}
+	| <tFALSE> {sf.factor_12(at);}
 }
 
 

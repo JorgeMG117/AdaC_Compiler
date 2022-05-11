@@ -1,0 +1,18 @@
+procedure cambio_base is
+    integer num, base[4], a;
+function integer pedir_entero (val integer n) is
+
+------------------------------------------------------------------------
+begin
+        while (n < 1) or (n > 100) do
+                put("Dame un numero entre 1 y 100: ");
+                get (n);
+        end
+        return n;
+end
+begin
+    -- num := 'a'; 
+    a := 0;
+    base[(0+1)*a+10] := a;
+    pedir_entero(2);
+end

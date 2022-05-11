@@ -22,20 +22,22 @@ public class Attributes implements Cloneable {
     public String valString;
     //COMPLETAR
     public ArrayList<Symbol> parList;
-    public Symbol.Types typeProcFunc;
+    public Symbol procFunc;//referencia a simbolo en tabla simbolos
     public String nombre;
+    public boolean canBeRef;
 
     public Attributes() {
         //COMPLETAR
         parList = new ArrayList<Symbol>();
         //undefined typo
         type = Symbol.Types.UNDEFINED;
+        parClass = Symbol.ParameterClass.NONE;
 
         valInt = 0;
         valBool = false;
         valChar = ' ';
         valString = null;
-        typeProcFunc = Symbol.Types.UNDEFINED;
+        procFunc = null;
         nombre = null;
     }
 
