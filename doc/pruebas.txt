@@ -1,6 +1,6 @@
 procedure cambio_base is
     integer num, base[4], a;
-function integer pedir_entero (val integer n) is
+procedure pedir_entero (ref integer n) is
 
 ------------------------------------------------------------------------
 begin
@@ -8,11 +8,14 @@ begin
                 put("Dame un numero entre 1 y 100: ");
                 get (n);
         end
-        return n;
+        return 2;
+
 end
 begin
     -- num := 'a'; 
     a := 0;
     base[(0+1)*a+10] := a;
-    pedir_entero(2);
+    num := 2;
+    -- num := 'c';
+    pedir_entero(num);
 end

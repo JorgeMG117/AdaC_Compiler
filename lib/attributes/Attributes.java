@@ -22,9 +22,10 @@ public class Attributes implements Cloneable {
     public String valString;
     //COMPLETAR
     public ArrayList<Symbol> parList;
-    public Symbol procFunc;//referencia a simbolo en tabla simbolos
-    public String nombre;
+    public Symbol simbolo;//referencia a simbolo en tabla simbolos
+    //public String nombre;
     public boolean canBeRef;
+    public int indice; 
 
     public Attributes() {
         //COMPLETAR
@@ -37,8 +38,8 @@ public class Attributes implements Cloneable {
         valBool = false;
         valChar = ' ';
         valString = null;
-        procFunc = null;
-        nombre = null;
+        simbolo = null;
+        //nombre = null;
     }
 
     public Attributes clone() {
