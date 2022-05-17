@@ -1,16 +1,31 @@
 procedure cambio_base is
     integer num, base[4], a;
-procedure pedir_entero (ref integer n) is
 
-------------------------------------------------------------------------
-begin
-        while (n < 1) or (n > 100) do
-                put("Dame un numero entre 1 y 100: ");
-                get (n);
-        end
-        return 2;
+    function integer pedir_entero (ref integer n) is
 
-end
+    ------------------------------------------------------------------------
+        function integer hola (ref integer n) is
+
+            ------------------------------------------------------------------------
+            begin
+                    while (n < 1) or (n > 100) do
+                            put("Dame un numero entre 1 y 100: ");
+                            get (n);
+                    end
+                    return 2;
+
+            end
+    begin
+            while (n < 1) or (n > 100) do
+                    put("Dame un numero entre 1 y 100: ");
+                    get (n);
+            end
+            n := hola(n);
+            return 2;
+            
+
+    end
+
 begin
     -- num := 'a'; 
     a := 0;

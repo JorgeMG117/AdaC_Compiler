@@ -408,10 +408,10 @@ void programa () :
 	bloque_sentencias(at1)
 
 	{
-		System.out.println("******************");
+		/*System.out.println("******************");
 		System.out.println("Procesando " + at1.simbolo.name);
 		System.out.println("******************");
-		System.out.println(st.toString());
+		System.out.println(st.toString());*/
 	}
 	
 }
@@ -559,10 +559,10 @@ void declaracion_proc_func():
 	declaracion_procs_funcs() //Ojito
 	bloque_sentencias(at1)
 	{
-		System.out.println("******************");
+		/*System.out.println("******************");
 		System.out.println("Procesando " + at1.simbolo.name);
 		System.out.println("******************");
-		System.out.println(st.toString());
+		System.out.println(st.toString());*/
 		st.removeBlock();
 	}
 	
@@ -943,6 +943,7 @@ void lista_cero_o_mas_exps(Attributes at):
 void lista_una_o_mas_exps(Attributes at):
 {
 	Attributes at1 = new Attributes();
+	//Attributes at2 = new Attributes();
 	
 	//SymbolProcedure sp = new SymbolProcedure(((SymbolProcedure)s).name, ((SymbolProcedure) s).parList);
 	//SymbolProcedure sp = new SymbolProcedure(s.name, new ArrayList<Symbol>());
@@ -954,7 +955,7 @@ void lista_una_o_mas_exps(Attributes at):
 //nombre de variable o componente del vector									//Duda recorrer parametros dudoso
 //v[]
 //func(v)
-	expresion(at1) {sf.lista_una_o_mas_exps_1(at, at1);} //aqui tenemos token para err :)
+	expresion(at1) {    sf.lista_una_o_mas_exps_1(at, at1);} //aqui tenemos token para err :)
 	( <tC> expresion(at1) {sf.lista_una_o_mas_exps_1(at, at1);} )* 
 }
 
@@ -992,16 +993,17 @@ void expresion_simple(Attributes at):
 	Attributes at3 = new Attributes();
 }
 {
-	((<tPOS>| <tNEG>) {sf.expresion_simple_1(at);})? //se esta pasando todo lo necesario de at1 a at??
-
-	termino(at1)
+	((<tPOS>| <tNEG>) {sf.expresion_simple_1(at1);})? //se esta pasando todo lo necesario de at1 a at??
+		
+		
+	termino(at)
 	{
 		sf.expresion_simple_2(at, at1);
 	}
 	 
 	 ( operador_aditivo(at2) termino(at3)
 	 {
-		sf.expresion_simple_3(at, at1, at2, at3);
+		sf.expresion_simple_3(at, at2, at3);
 	 }
 	  )*
 }
