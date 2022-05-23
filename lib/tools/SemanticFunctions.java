@@ -25,6 +25,19 @@ public class SemanticFunctions {
 		st = _st;
 	}
 
+	//programa
+	public void programa_1(Token t, Attributes at1){
+		Symbol s = null;
+		try{
+			s = new SymbolProcedure(t.image, null) ;
+			st.insertSymbol(s);
+			at1.simbolo = s;
+		}
+		catch (AlreadyDefinedSymbolException e) {
+			ErrorSemantico.deteccion(e, t);
+		}
+	}
+
 	//inst_invoc_proc
 	public void inst_invoc_proc_1(Token t, Attributes at1){
 		Symbol s = null;
@@ -275,6 +288,7 @@ public class SemanticFunctions {
 			//comprobar que es tipo array
 			if(s.type == Symbol.Types.ARRAY){
 				at.type = ((SymbolArray)s).baseType;
+				at.simbolo = s;
 			}
 			else{
 				//Mensaje error ErrorSemantico
@@ -301,10 +315,11 @@ public class SemanticFunctions {
 			s = st.getSymbol (t.image);
 			if(s.type != Symbol.Types.ARRAY){//Se puede hace v[], v+1
 				at.type = s.type;
+				at.simbolo = s;
 			}
 			else{
 				//Mensaje error ErrorSemantico
-				ErrorSemantico.deteccion("La variable no es un array", t);
+				ErrorSemantico.deteccion("La variable es un array", t);
 			}
 		}
 		catch(SymbolNotFoundException e){

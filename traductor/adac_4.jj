@@ -13,7 +13,7 @@ options {
 	//DEBUG_PARSER = true;
 }
 
-PARSER_BEGIN(adac)
+PARSER_BEGIN(adac_4)
 package traductor;
 
 import java.util.*;
@@ -23,7 +23,11 @@ import lib.attributes.*;
 import lib.errores.*;
 import lib.tools.*;
 
-public class adac {
+import lib.tools.codeGeneration.CodeBlock;
+import lib.tools.codeGeneration.PCodeInstruction.OpCode;
+import lib.tools.codeGeneration.CGUtils;
+
+public class adac_4 {
 
 	//tabla de símbolos global
 	static SymbolTable st;
@@ -43,16 +47,16 @@ public class adac {
 	
 
     public static void main(String[] args) {
-    	adac parser;
+    	adac_4 parser;
 		
 
 
     	try {
 	    	if(args.length == 0) { //entrada desde stdin
-				parser = new adac(System.in);
+				parser = new adac_4(System.in);
 			}
 			else { //entrada desde fichero en args[0]
-	            parser = new adac(new java.io.FileInputStream(args[0])); 
+	            parser = new adac_4(new java.io.FileInputStream(args[0])); 
 			}
 			initSymbolTable();
 			sf = new SemanticFunctions(st);
@@ -72,7 +76,7 @@ public class adac {
 		}
     }
 }
-PARSER_END(adac)
+PARSER_END(adac_4)
 
 TOKEN_MGR_DECLS:
 {
@@ -386,21 +390,20 @@ void programa () :
 {
 	Token t;
 	Attributes at1 = new Attributes();
-	Symbol s = null;
+	
+	CodeBlock cprog, cprodfun, cbloque;
+	String etiq;
 }
 {
 	<tPROC>
 	t = <tID>
 	<tIS>
 	{
-		try{
-			s = new SymbolProcedure(t.image, null) ;
-			st.insertSymbol(s);
-			at1.simbolo = s;
-		}
-		catch (AlreadyDefinedSymbolException e) {
-			ErrorSemantico.deteccion(e, t);
-		}
+		sf.programa_1(t, at1);
+		
+		cprog = new CodeBlock();
+		etiq = CGUtils.newLabel();
+		CGUtils.memorySpaces[st.level] = 2; //ojo esta inicializacion
 	}
 
 	declaracion_variables()
@@ -408,6 +411,16 @@ void programa () :
 	bloque_sentencias(at1)
 
 	{
+		cprog.addInst(OpCode.ENP, etiq);
+		//cprog.addCode(cprocfun);
+		cprog.addComment("Comienzo de " + t.image);
+		cprog.addLabel(etiq);
+		cprog.addBlock(at1.code);
+		cprog.addComment("Fin de "  + t.image);
+		cprog.addInst(OpCode.LVP);
+
+		System.out.println(cprog.toString());
+		
 		/*System.out.println("******************");
 		System.out.println("Procesando " + at1.simbolo.name);
 		System.out.println("******************");
@@ -492,7 +505,7 @@ void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en ta
 	t1 = <tID> 
 	<tISQBR> 
 	t2 = <tVINT> 
-	<tESQBR>
+	<tESQBR> 
 	{
 		//crear e instertar el simbolo
 		s = new SymbolArray(t1.image, 0, Integer.parseInt(t2.image)-1,at.type,at.parClass);
@@ -520,6 +533,8 @@ void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en ta
 			}
 			//System.out.println(s.toString());
 			if(at.parClass == Symbol.ParameterClass.NONE){
+				CGUtils.memorySpaces[st.level]++;
+				s.dir = CGUtils.memorySpaces[st.level];
 				try{
 					st.insertSymbol(s);
 				}	
@@ -527,8 +542,8 @@ void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en ta
 					ErrorSemantico.deteccion(e, t1); //DE DONDE SACAMOS EL TOKEN????
 				}
 			} else{at.parList.add(s);}
-		}
-		
+			
+		}	
 }
 
 void declaracion_procs_funcs():
@@ -615,6 +630,7 @@ void cabecera_proc(Attributes at, Token t):
 		
 		at.simbolo = s;
 		st.insertBlock();
+
 		
 		//Insertamos los argumentos en la tabla de simbolos
 		for (int i=0;i<at1.parList.size();i++) {
@@ -705,16 +721,16 @@ void instruccion(Attributes at):
 }
 {
 	try{
-		inst_escribir() <tPC> 
-		| inst_escribir_linea() <tPC> 
+		inst_escribir(at) <tPC> 
+		| inst_escribir_linea(at) <tPC> 
 		| inst_return(at) <tPC> 
 		| inst_saltar_linea() <tPC> 
-		| inst_leer() <tPC>
-		| inst_iteracion()
+		| inst_leer(at) <tPC>
+		| inst_iteracion(at)
 		| inst_seleccion(at)
 		| LOOKAHEAD(2)
 			inst_invoc_proc() <tPC> 
-		| inst_asignacion() <tPC> 
+		| inst_asignacion(at) <tPC> 
 	} catch (ParseException e) {
 		Set<Integer> conjSinc = infoParseException(e);
 		conjSinc.add(tPC);
@@ -729,7 +745,7 @@ void inst_invoc_proc():
 	Attributes at1 = new Attributes();
 	at1.indice = 0;
 	
-	//Integer i = new Integer(0);
+	//Integer i = new Integer(0);bloque_sentencias
 }
 {
 	//funcion( )
@@ -755,14 +771,27 @@ void lista_instrucciones(Attributes at):
 void inst_seleccion(Attributes at):
 {
 	Attributes at1 = new Attributes();
+	String etiq, etiq2;
 }
 {
 	try {
-		<tIF> expresion(at1) <tTHEN> lista_instrucciones(at)
-		{sf.inst_seleccion_1(at1);}		
+		<tIF> expresion(at1) <tTHEN>
+		{	
+			at.code.addBlock(at1.code);
+			etiq = CGUtils.newLabel();
+			at.code.addInst(OpCode.JMF, etiq);					
+		}
+		lista_instrucciones(at)
+		{
+			sf.inst_seleccion_1(at1);
+			etiq2 = CGUtils.newLabel();
+			at.code.addInst(OpCode.JMF, etiq2);	
+			at.code.addLabel(etiq);
+		}		
 		//if cond then		  instr
 		//else 	  if cond then		   instr
 		(<tELSE> lista_instrucciones(at))?
+		{at.code.addLabel(etiq2);}
 		//else    instr
 		<tEND>
 	} catch (ParseException e) {
@@ -775,18 +804,37 @@ void inst_seleccion(Attributes at):
 }
 
 
-void inst_iteracion():
+void inst_iteracion(Attributes at):
 {
-	Attributes at1 = new Attributes();//Compilacion
+	Attributes at1 = new Attributes();
+	String etiq = CGUtils.newLabel(), etiq2 = CGUtils.newLabel();
 }
 {
+	//etiqueta 1
+	//condicion
+	//jump a etiqueta 2
+	//bloque de codigo
+	//jump a etiqueta 1
+	//etiqueta 2
 
 	try {
 		<tWHILE> expresion(at1) 
-		{sf.inst_iteracion_1(at1);}
+		{
+			sf.inst_iteracion_1(at1);
+
+			at.code.addLabel(etiq);
+			at.code.addBlock(at1.code);
+			at.code.addInst(OpCode.JMF, etiq2);	
+
+		}
 		<tDO>		
-		lista_instrucciones(at1)
+		lista_instrucciones(at)
 		<tEND>
+		{
+			at.code.addInst(OpCode.JMF, etiq);
+			at.code.addLabel(etiq2);
+
+		}
 	} catch (ParseException e) {
 		//Set<Integer> conjSinc = infoParseException(e);
 		//conjSinc.add(tEND);
@@ -794,9 +842,6 @@ void inst_iteracion():
 		conjSinc.add(tEND);
 		recuperacionPanico(e.currentToken.next, conjSinc);
 	}
-
-
-
 }
 
 //<tRETURN> expresion()
@@ -815,7 +860,7 @@ void inst_return(Attributes at):
 	<tASSIGN>
 	expresion()
 */
-void inst_asignacion():
+void inst_asignacion(Attributes at):
 {
 	//asinabele esta en la tabla
 	//tiene el tipo correcto
@@ -827,15 +872,22 @@ void inst_asignacion():
 	asignable(at1)
 	<tASSIGN>
 	expresion(at2)
-	{sf.inst_asignacion_1(at1, at2);}
+	{
+		sf.inst_asignacion_1(at1, at2);
+
+		at.code.addBlock(at1.code);
+		at.code.addBlock(at2.code);
+		at.code.addInst(OpCode.ASG);
+	}
 }
 
 void lista_una_o_mas_asignable(Attributes at):
 {
 	//Attributes at1 = new Attributes();	//para que compile
+	at.expSize = 1;
 }
 {
-	asignable(at) ( <tC> asignable(at))*
+	asignable(at) ( <tC> asignable(at) {at.expSize++;})*
 }
 
 
@@ -878,34 +930,63 @@ void asignable(Attributes at):
 	| t = <tID>
 	{
 		sf.asignable_3(t, at);
-		
+		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 	}
 }
 
 //put acepta todo tipo de variables
-void inst_escribir():
+void inst_escribir(Attributes at):
 {
 	Token t;
-	Attributes at1 = new Attributes();
-	at1.indice = 0;
+	//Attributes at1 = new Attributes();
+	at.indice = 0;
 	//Integer i = new Integer(0);
 	
 }
 {
-	t = <tPUT> {sf.inst_escribir_1(t, at1);} <tSBR> lista_una_o_mas_exps(at1) <tEBR>	//iguales pero con un salto de linea
+	t = <tPUT> {
+		sf.inst_escribir_1(t, at);
+	} 
+	<tSBR> lista_una_o_mas_exps(at) <tEBR>	//iguales pero con un salto de linea
+	{
+		for(int i = 0; i < at.expSize; i++){
+			if(at.type == Symbol.Types.CHAR || at.type == Symbol.Types.STRING){	
+				at.code.addInst (OpCode.WRT, 0);
+			} else {
+				at.code.addInst (OpCode.WRT, 1);
+			}
+		}
+	}
 }
 
 //put_line acepta todo tipo de variables
-void inst_escribir_linea()://lista 0 a mas expresiones
+void inst_escribir_linea(Attributes at)://lista 0 a mas expresiones
 {
 	Token t;
-	Attributes at1 = new Attributes();
-	at1.indice = 0;
+	//Attributes at1 = new Attributes();
+	at.indice = 0;
 	//Integer i = new Integer(0);
 	
 }
 {
-	t = <tPUTL> {sf.inst_escribir_linea_1(t, at1);} <tSBR> lista_cero_o_mas_exps(at1) <tEBR>
+	t = <tPUTL> 
+	{
+		sf.inst_escribir_linea_1(t, at);
+	
+		//Añadir salto linea
+		at.code.addInst (OpCode.STC, 10);
+		at.code.addInst (OpCode.STC, 13);
+	} 
+	<tSBR> lista_cero_o_mas_exps(at) <tEBR>
+	{
+		for(int i = 0; i < at.expSize+2; i++){
+			if(at.type == Symbol.Types.CHAR || at.type == Symbol.Types.STRING){	
+				at.code.addInst (OpCode.WRT, 0);
+			} else {
+				at.code.addInst (OpCode.WRT, 1);
+			}
+		}
+	}
 }
 
 
@@ -918,14 +999,24 @@ void inst_saltar_linea():
 }
  
 
-void inst_leer(): //lista de uno o mas asignables
+void inst_leer(Attributes at): //lista de uno o mas asignables
 {
-	Attributes at1 = new Attributes(); 
+	//Attributes at1 = new Attributes(); 
 	Token t;
 }
 {
-	t = <tGET> <tSBR> lista_una_o_mas_asignable(at1) <tEBR>	//get (lista_var);
-	{sf.inst_leer_1(t, at1);}
+	t = <tGET> <tSBR> lista_una_o_mas_asignable(at) <tEBR>	//get (lista_var);
+	{
+		sf.inst_leer_1(t, at);
+
+		for(int i = 0; i < at.expSize; i++){
+			if(at.type == Symbol.Types.CHAR){	
+				at.code.addInst (OpCode.RD, 0);
+			} else {
+				at.code.addInst (OpCode.RD, 1);
+			}
+		}
+	}
 }
 
 
@@ -943,19 +1034,15 @@ void lista_cero_o_mas_exps(Attributes at):
 void lista_una_o_mas_exps(Attributes at):
 {
 	Attributes at1 = new Attributes();
-	//Attributes at2 = new Attributes();
-	
-	//SymbolProcedure sp = new SymbolProcedure(((SymbolProcedure)s).name, ((SymbolProcedure) s).parList);
-	//SymbolProcedure sp = new SymbolProcedure(s.name, new ArrayList<Symbol>());
-	//sp.parList = ((SymbolProcedure) s).parList;
-	//s = new SymbolProcedure(t1.image, at1.parList);
-	//int i = 0;
+	at1.code = at.code;
 }
-{//Comprobar tipo de la expresion, si es por referencia no me vale cualquier expresion, sera asignable
-//nombre de variable o componente del vector									//Duda recorrer parametros dudoso
-//v[]
-//func(v)
-	expresion(at1) {    sf.lista_una_o_mas_exps_1(at, at1);} //aqui tenemos token para err :)
+{
+	expresion(at1) 
+	{    
+		sf.lista_una_o_mas_exps_1(at, at1);
+		at.code = at1.code;
+		at.expSize = at1.expSize;
+	}
 	( <tC> expresion(at1) {sf.lista_una_o_mas_exps_1(at, at1);} )* 
 }
 
@@ -963,24 +1050,31 @@ void lista_una_o_mas_exps(Attributes at):
 void expresion(Attributes at) : 
 {
 	Attributes at1 = new Attributes();
-	//Attributes at2 = new Attributes();
+	Attributes at2 = new Attributes();
 }
 {
 	expresion_simple(at) 
-	( operador_relacional() expresion_simple(at1) {sf.expresion_1(at, at1);} )?
+	( operador_relacional(at2) expresion_simple(at1) 
+		{
+			sf.expresion_1(at, at1);
+
+			at.code.addBlock(at1.code);
+			at.code.addBlock(at2.code);
+		} 
+	)?
 }  
 
-void operador_relacional():
+void operador_relacional(Attributes at):
 {
 
 }
 {
-	<tEQ>
-	| <tLESS>
-	| <tMORE>
-	| <tLESSEQ>
-	| <tMOREEQ>
-	| <tNOTEQ>
+	<tEQ> {at.code.addInst (OpCode.EQ);}
+	| <tLESS> {at.code.addInst (OpCode.LT);}
+	| <tMORE> {at.code.addInst (OpCode.GT);}
+	| <tLESSEQ> {at.code.addInst (OpCode.LTE);}
+	| <tMOREEQ> {at.code.addInst (OpCode.GTE);}
+	| <tNOTEQ> {at.code.addInst (OpCode.NEQ);}
 }
 
 /*
@@ -1004,6 +1098,9 @@ void expresion_simple(Attributes at):
 	 ( operador_aditivo(at2) termino(at3)
 	 {
 		sf.expresion_simple_3(at, at2, at3);
+
+		at.code.addBlock(at3.code);
+		at.code.addBlock(at2.code);
 	 }
 	  )*
 }
@@ -1016,9 +1113,9 @@ void operador_aditivo(Attributes at):
 
 }
 {
-	<tPOS> {at.type = Symbol.Types.INT;}
-	| <tNEG> {at.type = Symbol.Types.INT;}
-	| <tOR> {at.type = Symbol.Types.BOOL;}
+	<tPOS> {at.type = Symbol.Types.INT; at.code.addInst (OpCode.PLUS);}
+	| <tNEG> {at.type = Symbol.Types.INT; at.code.addInst (OpCode.SBT);}
+	| <tOR> {at.type = Symbol.Types.BOOL; at.code.addInst (OpCode.OR);}
 }
 
 //factor() ( operador_multiplicativo() factor() )*
@@ -1059,10 +1156,34 @@ void factor(Attributes at):
 	| <tC2I> <tSBR> expresion(at1) <tEBR> {sf.factor_4(at, at1);}//Lo mismo
 	| LOOKAHEAD(2) t = <tID> {sf.factor_13(t, at1);} <tSBR> lista_cero_o_mas_exps(at1) <tEBR> {sf.factor_5(at1, at);}//Lo mismo ojito!!!!!!!!! 
 	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> {sf.factor_6(t, at, at1);}//Es componente del vector no es var
-	| t = <tID> {sf.factor_7(t, at);}
-	| t = <tVINT> {sf.factor_8(t, at);}
+	| t = <tID> 
+	{
+		sf.factor_7(t, at);
+
+		//at.simbolo
+		//SRF  0  3 //Nivel actual en tabla simbolos - nivel simbolo
+  		//DRF
+		at.expSize++;
+		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir); //ejemplo, porque usamos un long?
+		at.code.addInst(OpCode.DRF);
+	}
+	| t = <tVINT> 
+	{
+		sf.factor_8(t, at);
+		at.expSize++;
+		at.code.addInst(OpCode.STC, at.valInt);
+	
+	}
 	| t = <tVCHAR> {sf.factor_9(t, at);}
-	| t = <tVSTRING> {sf.factor_10(t, at);}
+	| t = <tVSTRING>
+	{
+		sf.factor_10(t, at);
+		
+		for (int i = at.valString.length() - 2; i >= 1; i--) {
+			at.code.addInst (OpCode.STC, (int) at.valString.charAt(i));
+		}
+		at.expSize = at.valString.length();
+	}
 	| <tTRUE> {sf.factor_11(at);}
 	| <tFALSE> {sf.factor_12(at);}
 }

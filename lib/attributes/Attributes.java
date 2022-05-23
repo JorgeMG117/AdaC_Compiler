@@ -12,6 +12,8 @@ import lib.symbolTable.*;
 import java.util.ArrayList;
 import java.util.AbstractMap.SimpleEntry;
 
+import lib.tools.codeGeneration.CodeBlock;
+
 public class Attributes implements Cloneable {
     public Symbol.Types type;
     public Symbol.ParameterClass parClass;
@@ -26,6 +28,8 @@ public class Attributes implements Cloneable {
     //public String nombre;
     public boolean canBeRef;
     public int indice; 
+    public CodeBlock code; 
+    public int expSize;
 
     public Attributes() {
         //COMPLETAR
@@ -40,6 +44,8 @@ public class Attributes implements Cloneable {
         valString = null;
         simbolo = null;
         //nombre = null;
+        code = new CodeBlock();
+        expSize = 0;
     }
 
     public Attributes clone() {
