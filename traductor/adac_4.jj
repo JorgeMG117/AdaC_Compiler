@@ -736,6 +736,12 @@ void instruccion(Attributes at):
 		conjSinc.add(tPC);
 		recuperacionPanico(e.currentToken.next, conjSinc);
 	}
+	
+	{
+		at.listaSize.clear();
+		at.listaTipo.clear();
+		at.listaCode.clear();
+	}
 }
 
 //<tID> <tSBR> lista_cero_o_mas_exps(t) <tEBR>
@@ -744,6 +750,9 @@ void inst_invoc_proc():
 	Token t;
 	Attributes at1 = new Attributes();
 	at1.indice = 0;
+
+	//osf memoryspace actual-bloque s.label
+	//st.level - at.simbolo.nivel, (int)at.simbolo.dir
 	
 	//Integer i = new Integer(0);bloque_sentencias
 }
@@ -755,8 +764,15 @@ void inst_invoc_proc():
 	}
 	<tSBR> lista_cero_o_mas_exps(at1) <tEBR> 
 	{
+		
 		sf.inst_invoc_proc_2(at1);
+
+		//En at1 tendremos lista de argumentos, apilamos
+		
+		
+		//OSF
 	}
+	
 	
 }
 
@@ -831,7 +847,7 @@ void inst_iteracion(Attributes at):
 		lista_instrucciones(at)
 		<tEND>
 		{
-			at.code.addInst(OpCode.JMF, etiq);
+			at.code.addInst(OpCode.JMP, etiq);
 			at.code.addLabel(etiq2);
 
 		}
@@ -874,7 +890,7 @@ void inst_asignacion(Attributes at):
 	expresion(at2)
 	{
 		sf.inst_asignacion_1(at1, at2);
-
+		at.code.addComment("asignando");
 		at.code.addBlock(at1.code);
 		at.code.addBlock(at2.code);
 		at.code.addInst(OpCode.ASG);
@@ -883,11 +899,22 @@ void inst_asignacion(Attributes at):
 
 void lista_una_o_mas_asignable(Attributes at):
 {
-	//Attributes at1 = new Attributes();	//para que compile
+	Attributes at1 = new Attributes();	//para que compile
 	at.expSize = 1;
 }
 {
-	asignable(at) ( <tC> asignable(at) {at.expSize++;})*
+	asignable(at1) 
+	{
+		at.listaCode.add(at1.code);
+		at.listaTipo.add(at1.type);
+		at1 = new Attributes();
+	} 
+	( <tC> asignable(at1) {
+		at.listaCode.add(at1.code);
+		at.listaTipo.add(at1.type);
+		at.expSize++;
+		at1 = new Attributes();
+	})*
 }
 
 
@@ -930,6 +957,7 @@ void asignable(Attributes at):
 	| t = <tID>
 	{
 		sf.asignable_3(t, at);
+		at.code.addComment("Variable " + t.image);
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 	}
 }
@@ -949,13 +977,20 @@ void inst_escribir(Attributes at):
 	} 
 	<tSBR> lista_una_o_mas_exps(at) <tEBR>	//iguales pero con un salto de linea
 	{
-		for(int i = 0; i < at.expSize; i++){
-			if(at.type == Symbol.Types.CHAR || at.type == Symbol.Types.STRING){	
-				at.code.addInst (OpCode.WRT, 0);
-			} else {
-				at.code.addInst (OpCode.WRT, 1);
+		for(int i = at.listaCode.size() - 1; i >= 0; i--){
+			at.code.addBlock(at.listaCode.get(i));
+		}
+
+		for(int i = 0; i < at.listaCode.size(); i++){
+			for(int j = 0; j < at.listaSize.get(i); j++){
+				if(at.listaTipo.get(i) == Symbol.Types.CHAR || at.listaTipo.get(i) == Symbol.Types.STRING){		
+					at.code.addInst (OpCode.WRT, 0);
+				} else {
+					at.code.addInst (OpCode.WRT, 1);
+				}
 			}
 		}
+	
 	}
 }
 
@@ -974,18 +1009,30 @@ void inst_escribir_linea(Attributes at)://lista 0 a mas expresiones
 		sf.inst_escribir_linea_1(t, at);
 	
 		//Añadir salto linea
+		at.code.addComment("put_line");
 		at.code.addInst (OpCode.STC, 10);
 		at.code.addInst (OpCode.STC, 13);
 	} 
 	<tSBR> lista_cero_o_mas_exps(at) <tEBR>
 	{
-		for(int i = 0; i < at.expSize+2; i++){
-			if(at.type == Symbol.Types.CHAR || at.type == Symbol.Types.STRING){	
-				at.code.addInst (OpCode.WRT, 0);
-			} else {
-				at.code.addInst (OpCode.WRT, 1);
+		for(int i = at.listaCode.size() - 1; i >= 0; i--){
+			at.code.addBlock(at.listaCode.get(i));
+
+		}
+
+		for(int i = 0; i < at.listaCode.size(); i++){
+			for(int j = 0; j < at.listaSize.get(i); j++){
+				if(at.listaTipo.get(i) == Symbol.Types.CHAR || at.listaTipo.get(i) == Symbol.Types.STRING){		
+					at.code.addInst (OpCode.WRT, 0);
+				} else {
+					at.code.addInst (OpCode.WRT, 1);
+				}
 			}
 		}
+		//Salto de linea
+		at.code.addInst (OpCode.WRT, 0);
+		at.code.addInst (OpCode.WRT, 0);
+
 	}
 }
 
@@ -1008,14 +1055,24 @@ void inst_leer(Attributes at): //lista de uno o mas asignables
 	t = <tGET> <tSBR> lista_una_o_mas_asignable(at) <tEBR>	//get (lista_var);
 	{
 		sf.inst_leer_1(t, at);
+		
+
+		for(int i = at.listaCode.size() - 1; i >= 0; i--){
+			at.code.addBlock(at.listaCode.get(i));
+		}
+
 
 		for(int i = 0; i < at.expSize; i++){
-			if(at.type == Symbol.Types.CHAR){	
+			if(at.listaTipo.get(i) == Symbol.Types.CHAR){	
 				at.code.addInst (OpCode.RD, 0);
 			} else {
 				at.code.addInst (OpCode.RD, 1);
 			}
 		}
+
+		
+
+		
 	}
 }
 
@@ -1034,16 +1091,33 @@ void lista_cero_o_mas_exps(Attributes at):
 void lista_una_o_mas_exps(Attributes at):
 {
 	Attributes at1 = new Attributes();
-	at1.code = at.code;
+	//at1.code = at.code;
 }
 {
 	expresion(at1) 
 	{    
 		sf.lista_una_o_mas_exps_1(at, at1);
-		at.code = at1.code;
-		at.expSize = at1.expSize;
+		
+		//at.expSize = at.expSize + at1.expSize;
+		at.listaCode.add(at1.code);
+		//at1.code.clearBlock();
+		
+		at.listaTipo.add(at1.type);
+		at.listaSize.add(at1.expSize);
+		at1 = new Attributes();
+
 	}
-	( <tC> expresion(at1) {sf.lista_una_o_mas_exps_1(at, at1);} )* 
+	( <tC> expresion(at1) {
+		sf.lista_una_o_mas_exps_1(at, at1);
+
+		//at.expSize = at.expSize + at1.expSize;
+		at.listaCode.add(at1.code);
+		//at1.code.clearBlock();
+		
+		at.listaTipo.add(at1.type);
+		at.listaSize.add(at1.expSize);
+		at1 = new Attributes();
+	})* 
 }
 
 
@@ -1159,18 +1233,19 @@ void factor(Attributes at):
 	| t = <tID> 
 	{
 		sf.factor_7(t, at);
-
+		at.code.addComment("coger variable " + t.image);
 		//at.simbolo
 		//SRF  0  3 //Nivel actual en tabla simbolos - nivel simbolo
   		//DRF
-		at.expSize++;
+		at.expSize=1;
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir); //ejemplo, porque usamos un long?
 		at.code.addInst(OpCode.DRF);
 	}
 	| t = <tVINT> 
 	{
 		sf.factor_8(t, at);
-		at.expSize++;
+		at.code.addComment("coger constante entera " + t.image);
+		at.expSize=1;
 		at.code.addInst(OpCode.STC, at.valInt);
 	
 	}
@@ -1178,7 +1253,7 @@ void factor(Attributes at):
 	| t = <tVSTRING>
 	{
 		sf.factor_10(t, at);
-		
+		at.code.addComment("coger constante string "  + t.image);
 		for (int i = at.valString.length() - 2; i >= 1; i--) {
 			at.code.addInst (OpCode.STC, (int) at.valString.charAt(i));
 		}
@@ -1198,7 +1273,7 @@ Set<Integer> infoParseException(ParseException e){
 	System.err.println("Se esperaba uno de los siguientes tokens:");
 	for(int i = 0; i < e.expectedTokenSequences.length; i++){
 		esperados.add(e.expectedTokenSequences[i][0]);
-		System.err.println("\t" + adacConstants.tokenImage[e.expectedTokenSequences[i][0]]);
+		System.err.println("\t" + adac_4Constants.tokenImage[e.expectedTokenSequences[i][0]]);
 	}
 	return esperados;
 }
@@ -1210,7 +1285,7 @@ void recuperacionPanico(Token tInesperado, Set<Integer> conjSinc) {
 	Token t = getNextToken();
 	while (!conjSinc.contains(t.kind) && t.kind != EOF) {
 		System.err.println("Descartando token (" 
-		+ adacConstants.tokenImage[t.kind]
+		+ adac_4Constants.tokenImage[t.kind]
 		+ "," + t.image + ")");
 		
 		t = getNextToken();

@@ -119,9 +119,11 @@ public class SemanticFunctions {
 	}
 
 	//Inst_leer
-	public void inst_leer_1(Token t, Attributes at1){
-		if(at1.type != Symbol.Types.INT && at1.type != Symbol.Types.CHAR){
-			ErrorSemantico.deteccion("Los argumentos deben ser de tipo INT o CHAR", t);
+	public void inst_leer_1(Token t, Attributes at1){ 
+		for(int i = 0; i < at1.listaTipo.size() - 1; i++){
+			if(at1.listaTipo.get(i) != Symbol.Types.INT && at1.listaTipo.get(i) != Symbol.Types.CHAR){
+				ErrorSemantico.deteccion("Los argumentos deben ser de tipo INT o CHAR", t);
+			}
 		}
 	}
 
