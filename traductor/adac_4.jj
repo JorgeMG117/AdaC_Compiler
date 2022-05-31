@@ -514,6 +514,8 @@ void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en ta
 		//crear e instertar el simbolo
 		s = new SymbolArray(t1.image, 0, Integer.parseInt(t2.image)-1,at.type,at.parClass);
 		if(at.parClass == Symbol.ParameterClass.NONE){
+			s.dir = CGUtils.memorySpaces[st.level+1];
+			CGUtils.memorySpaces[st.level] += Integer.parseInt(t2.image);
 			try{
 				st.insertSymbol(s);
 			}	
@@ -766,7 +768,7 @@ void instruccion(Attributes at):
 		| inst_iteracion(at)
 		| inst_seleccion(at)
 		| LOOKAHEAD(2)
-			inst_invoc_proc() <tPC> 
+			inst_invoc_proc(at) <tPC> 
 		| inst_asignacion(at) <tPC> 
 	} catch (ParseException e) {
 		Set<Integer> conjSinc = infoParseException(e);
@@ -782,32 +784,27 @@ void instruccion(Attributes at):
 }
 
 //<tID> <tSBR> lista_cero_o_mas_exps(t) <tEBR>
-void inst_invoc_proc(): 
+void inst_invoc_proc(Attributes at): 
 {
 	Token t;
 	Attributes at1 = new Attributes();
 	at1.indice = 0;
-
-	//osf memoryspace actual-bloque s.label
-	//st.level - at.simbolo.nivel, (int)at.simbolo.dir
-	
-	//Integer i = new Integer(0);bloque_sentencias
 }
 {
 	//funcion( )
 	t = <tID> 
 	{
 		sf.inst_invoc_proc_1(t, at1);
+		at1.esLlamada = true;
 	}
 	<tSBR> lista_cero_o_mas_exps(at1) <tEBR> 
 	{
 		
 		sf.inst_invoc_proc_2(at1);
-
+		at.code.addBlock(at1.code);
+		//at1.esLlamada = false;
 		//En at1 tendremos lista de argumentos, apilamos
-		
-		
-		//OSF
+		at.code.addOSFInst(CGUtils.memorySpaces[st.level] + 1, st.level - at1.simbolo.nivel, at1.simbolo.label);
 	}
 	
 	
@@ -909,6 +906,7 @@ void inst_return(Attributes at):
 	{
 		sf.inst_return_1(at, at1, t);
 		at.code.addBlock(at1.code);
+		at.code.addInst(OpCode.CSF);
 	}
 }
 
@@ -968,38 +966,162 @@ void asignable(Attributes at):
 	Token t;
 	Attributes at1 = new Attributes(); //compilar expresion simpel
 	//SymbolArray s1 = null;
+	String etiq, etiq2;
 }
 {
 	LOOKAHEAD(2)
 	t = <tID> 
-	/*{
-		//comprobar si eexiste
-		try{
-			s = st.getSymbol(t.image);
-			//comprobar que es tipo array
-			if(s.type == Symbol.Types.ARRAY){
-				at.type = ((SymbolArray)s).baseType;
-			}
-			else{
-				//Mensaje error ErrorSemantico
-				ErrorSemantico.deteccion("La variable no es un array", t);
-			}
-		}
-		catch(SymbolNotFoundException e){
-			ErrorSemantico.deteccion(e, t);
-		}
-		
-	}*/
 	{sf.asignable_1(t, at);}
 	<tISQBR> expresion_simple(at1)  <tESQBR>	//la posicion de un vector puede venir de una exp_simple
 	{
 		sf.asignable_2(t, at1);
+		at.code.addBlock(at1.code);
+		at.code.addComment("Comprobando indice vector");
+		at.code.addInst(OpCode.DUP);
+		at.code.addInst(OpCode.STC, 0);
+		at.code.addInst(OpCode.GTE);
+		etiq = CGUtils.newLabel();
+		at.code.addInst(OpCode.JMF, etiq);
+		at.code.addInst(OpCode.DUP);
+		at.code.addInst(OpCode.STC, at.arraySize);
+		at.code.addInst(OpCode.LT);
+		etiq2 = CGUtils.newLabel();
+		at.code.addInst(OpCode.JMT, etiq2);
+		
+		at.code.addLabel(etiq);
+		//Comentario si esta mal
+		at.code.addComment("Mensaje error");
+		/*at.code.addInst(OpCode.STC, 73);
+		at.code.addInst(OpCode.WRT, 0);
+
+		at.code.addInst(OpCode.STC, 110);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 100);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 101);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 120);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 111);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 117);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 116);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 111);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 102);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 98);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 111);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 117);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 110);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 100);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 115);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 102);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 111);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 114);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 97);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 114);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 114);
+		at.code.addInst(OpCode.WRT, 0);
+
+		at.code.addInst(OpCode.STC, 97);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 121);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 34);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 118);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 34);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 105);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 110);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 108);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 105);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 110);
+		at.code.addInst(OpCode.WRT, 0);
+
+		at.code.addInst(OpCode.STC, 101);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 54);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 48);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 58);
+		at.code.addInst(OpCode.WRT, 0);
+
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 105);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 110);
+		at.code.addInst(OpCode.WRT, 0);
+
+		at.code.addInst(OpCode.STC, 100);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 101);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.STC, 120);
+		at.code.addInst(OpCode.WRT, 0);
+
+		at.code.addInst(OpCode.STC, 32);
+		at.code.addInst(OpCode.WRT, 0);
+		at.code.addInst(OpCode.WRT, 1);
+		at.code.addInst(OpCode.LVP);*/
+
+
+
+		at.code.addLabel(etiq2);
+		at.code.addComment("Variable vector " + t.image);
+		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
+		if(at.simbolo.parClass == Symbol.ParameterClass.REF){
+			at.code.addInst(OpCode.DRF);
+		}
+		at.code.addInst(OpCode.PLUS);
 	}
 	| t = <tID>
 	{
 		sf.asignable_3(t, at);
 		at.code.addComment("Variable " + t.image);
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
+		if(at.simbolo.parClass == Symbol.ParameterClass.REF){
+			at.code.addInst(OpCode.DRF);
+		}
 	}
 }
 
@@ -1133,19 +1255,24 @@ void lista_una_o_mas_exps(Attributes at):
 {
 	Attributes at1 = new Attributes();
 	//at1.code = at.code;
+	at1.esLlamada = at.esLlamada;
 }
 {
-
-	
-
 	expresion(at1) 
 	{    
 		sf.lista_una_o_mas_exps_1(at, at1);
 		
+		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){
+			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
+		}
+		else if(at.esLlamada){
+			at.code.addBlock(at1.code);
+		}
+		
+
 		//at.expSize = at.expSize + at1.expSize;
 		at.listaCode.add(at1.code);
 		//at1.code.clearBlock();
-		
 		at.listaTipo.add(at1.type);
 		at.listaSize.add(at1.expSize);
 		at1 = new Attributes();
@@ -1153,6 +1280,13 @@ void lista_una_o_mas_exps(Attributes at):
 	}
 	( <tC> expresion(at1) {
 		sf.lista_una_o_mas_exps_1(at, at1);
+
+		if(at.esLlamada &&  at1.parClass == Symbol.ParameterClass.REF){
+			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
+		}
+		else if(at.esLlamada){
+			at.code.addBlock(at1.code);
+		}
 
 		//at.expSize = at.expSize + at1.expSize;
 		at.listaCode.add(at1.code);
@@ -1272,19 +1406,59 @@ void factor(Attributes at):
 	| <tSBR> expresion(at1) <tEBR> {sf.factor_2(at, at1);}//Lo mismo
 	| <tI2C> <tSBR> expresion(at1) <tEBR> {sf.factor_3(at, at1);}//Lo mismo
 	| <tC2I> <tSBR> expresion(at1) <tEBR> {sf.factor_4(at, at1);}//Lo mismo
-	| LOOKAHEAD(2) t = <tID> {sf.factor_13(t, at1);} <tSBR> lista_cero_o_mas_exps(at1) <tEBR> {sf.factor_5(at1, at);}//Lo mismo ojito!!!!!!!!! 
-	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> {sf.factor_6(t, at, at1);}//Es componente del vector no es var
+	| LOOKAHEAD(2) t = <tID> //Llamada a funcion
+	{
+		sf.factor_13(t, at1);
+		at1.esLlamada = true;
+	} 
+	<tSBR> lista_cero_o_mas_exps(at1) <tEBR> 
+	{
+		sf.factor_5(at1, at);
+		
+		at.code.addBlock(at1.code);
+		at.code.addOSFInst(CGUtils.memorySpaces[st.level] + 1, st.level - at1.simbolo.nivel, at1.simbolo.label);
+	}//Lo mismo 
+	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> 
+	{
+		sf.factor_6(t, at, at1);
+
+		at.code.addBlock(at1.code);
+		at.code.addComment("Comprobando indice vector");
+		at.code.addInst(OpCode.DUP);
+		at.code.addInst(OpCode.STC, 0);
+		at.code.addInst(OpCode.GTE);
+		etiq = CGUtils.newLabel();
+		at.code.addInst(OpCode.JMF, etiq);
+		at.code.addInst(OpCode.DUP);
+		at.code.addInst(OpCode.STC, at.arraySize);
+		at.code.addInst(OpCode.LT);
+		etiq2 = CGUtils.newLabel();
+		at.code.addInst(OpCode.JMT, etiq2);
+		
+		at.code.addLabel(etiq);
+		//Comentario si esta mal
+		at.code.addComment("Mensaje error");
+
+		at.code.addLabel(etiq2);
+		at.code.addComment("Variable vector " + t.image);
+		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
+		at.code.addInst(OpCode.DRF);
+		at.code.addInst(OpCode.PLUS);
+
+		
+	}//Es componente del vector no es var
 	| t = <tID> 
 	{
 		sf.factor_7(t, at);
+
 		at.code.addComment("coger variable " + t.image);
 		//at.simbolo
 		//SRF  0  3 //Nivel actual en tabla simbolos - nivel simbolo
-  		//DRF
-		at.expSize=1;
-		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir); //ejemplo, porque usamos un long?
-		
+		//DRF
+		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 		at.code.addInst(OpCode.DRF);
+	
+		at.expSize=1;
 	}
 	| t = <tVINT> 
 	{

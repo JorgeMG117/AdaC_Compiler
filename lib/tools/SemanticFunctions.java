@@ -291,6 +291,7 @@ public class SemanticFunctions {
 			if(s.type == Symbol.Types.ARRAY){
 				at.type = ((SymbolArray)s).baseType;
 				at.simbolo = s;
+				at.arraySize = ((SymbolArray)s).maxInd;
 			}
 			else{
 				//Mensaje error ErrorSemantico
