@@ -2,20 +2,18 @@
 procedure factorial is
 --------------------------------------------------------------------------
 
-integer n, j;
+integer n, j, base[4];
 
 --------------------------------------------------------------------------
-function integer fact (val integer m; ref integer p) is
+procedure fact (ref integer v[4]) is
 --------------------------------------------------------------------------
 begin
-    m := 2;
-    p := 3;
-    return fact(p, m);
+    v[1] := 2 + v[3];
+    -- return fact(p, m);
 end
 
 --------------------------------------------------------------------------
 begin
-
-    j := 1;
-    j := fact (n + 1, n);
+    base[3] := n;
+    fact (base);
 end

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<factorial>
+  ENP L0
+<variable_declaration>
+; --- Simple variable "n", type 0, level 0,  address [3]!
+</variable_declaration>
+L0:
+<factorial_instruction_block>
+<skip_line>
+L1:
+; --- Temporary hidden compiler variable used for reading until LF
+  SRF  0  4
+  RD  0
+  SRF  0  4
+  DRF 
+  STC 10
+  EQ 
+  JMF L1
+</skip_line>
+</factorial_instruction_block>
+  LVP 
+</factorial>

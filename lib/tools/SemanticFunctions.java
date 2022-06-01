@@ -401,6 +401,7 @@ public class SemanticFunctions {
 			if(s.type == Symbol.Types.ARRAY){
 				at.type = ((SymbolArray)s).baseType;
 				at.canBeRef = true;
+				at.simbolo = s;
 			}
 			else{
 				//Mensaje error ErrorSemantico
