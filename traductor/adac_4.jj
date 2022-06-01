@@ -653,7 +653,7 @@ void cabecera_proc(Attributes at, Token t):
 		//Insertamos los argumentos en la tabla de simbolos
 		for (int i=0;i<at1.parList.size();i++) {
 			try{
-				if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parClass == Symbol.ParameterClass.VAL){
+				if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parList.get(i).parClass == Symbol.ParameterClass.VAL){
 					at1.parList.get(i).dir = CGUtils.memorySpaces[st.level] + 1;
 					CGUtils.memorySpaces[st.level] += ((SymbolArray)at1.parList.get(i)).maxInd + 1;
 				}
@@ -669,7 +669,7 @@ void cabecera_proc(Attributes at, Token t):
 		}
 
 		for (int i=at1.parList.size()-1; i >= 0; i--) {
-			if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parClass == Symbol.ParameterClass.VAL){
+			if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parList.get(i).parClass == Symbol.ParameterClass.VAL){
 				for(int j = ((SymbolArray)at1.parList.get(i)).maxInd; j >= 0; j--){
 					at.code.addInst(OpCode.SRF, st.level - at1.parList.get(i).nivel, (int)at1.parList.get(i).dir + j);
 					at.code.addInst(OpCode.ASGI);
@@ -714,7 +714,7 @@ void cabecera_func(Attributes at, Token t):
 		//Insertamos los argumentos en la tabla de simbolos
 		for (int i=0;i<at1.parList.size();i++) {
 			try{
-				if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parClass == Symbol.ParameterClass.VAL){
+				if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parList.get(i).parClass == Symbol.ParameterClass.VAL){
 					at1.parList.get(i).dir = CGUtils.memorySpaces[st.level] + 1;
 					CGUtils.memorySpaces[st.level] += ((SymbolArray)at1.parList.get(i)).maxInd + 1;
 				}
@@ -730,7 +730,7 @@ void cabecera_func(Attributes at, Token t):
 		}
 
 		for (int i=at1.parList.size()-1; i >= 0; i--) {
-			if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parClass == Symbol.ParameterClass.VAL){
+			if(at1.parList.get(i).type == Symbol.Types.ARRAY && at1.parList.get(i).parClass == Symbol.ParameterClass.VAL){
 				for(int j = ((SymbolArray)at1.parList.get(i)).maxInd; j >= 0; j--){
 					at.code.addInst(OpCode.SRF, st.level - at1.parList.get(i).nivel, (int)at1.parList.get(i).dir + j);
 					at.code.addInst(OpCode.ASGI);
@@ -803,11 +803,11 @@ void instruccion(Attributes at):
 		recuperacionPanico(e.currentToken.next, conjSinc);
 	}
 	
-	{
+	/*{
 		at.listaSize.clear();
 		at.listaTipo.clear();
 		at.listaCode.clear();
-	}
+	}*/
 }
 
 //<tID> <tSBR> lista_cero_o_mas_exps(t) <tEBR>
@@ -862,7 +862,7 @@ void inst_seleccion(Attributes at):
 		{
 			sf.inst_seleccion_1(at1);
 			etiq2 = CGUtils.newLabel();
-			at.code.addInst(OpCode.JMF, etiq2);	
+			at.code.addInst(OpCode.JMP, etiq2);	
 			at.code.addLabel(etiq);
 		}		
 		//if cond then		  instr
@@ -1157,24 +1157,24 @@ void asignable(Attributes at):
 void inst_escribir(Attributes at):
 {
 	Token t;
-	//Attributes at1 = new Attributes();
-	at.indice = 0;
+	Attributes at1 = new Attributes();
+	at1.indice = 0;
 	//Integer i = new Integer(0);
 	
 }
 {
 	t = <tPUT> {
-		sf.inst_escribir_1(t, at);
+		sf.inst_escribir_1(t, at1);
 	} 
-	<tSBR> lista_una_o_mas_exps(at) <tEBR>	//iguales pero con un salto de linea
+	<tSBR> lista_una_o_mas_exps(at1) <tEBR>	//iguales pero con un salto de linea
 	{
-		for(int i = at.listaCode.size() - 1; i >= 0; i--){
-			at.code.addBlock(at.listaCode.get(i));
+		for(int i = at1.listaCode.size() - 1; i >= 0; i--){
+			at.code.addBlock(at1.listaCode.get(i));
 		}
 
-		for(int i = 0; i < at.listaCode.size(); i++){
-			for(int j = 0; j < at.listaSize.get(i); j++){
-				if(at.listaTipo.get(i) == Symbol.Types.CHAR || at.listaTipo.get(i) == Symbol.Types.STRING){		
+		for(int i = 0; i < at1.listaCode.size(); i++){
+			for(int j = 0; j < at1.listaSize.get(i); j++){
+				if(at1.listaTipo.get(i) == Symbol.Types.CHAR || at1.listaTipo.get(i) == Symbol.Types.STRING){		
 					at.code.addInst (OpCode.WRT, 0);
 				} else {
 					at.code.addInst (OpCode.WRT, 1);
@@ -1189,31 +1189,31 @@ void inst_escribir(Attributes at):
 void inst_escribir_linea(Attributes at)://lista 0 a mas expresiones
 {
 	Token t;
-	//Attributes at1 = new Attributes();
-	at.indice = 0;
+	Attributes at1 = new Attributes();
+	at1.indice = 0;
 	//Integer i = new Integer(0);
 	
 }
 {
 	t = <tPUTL> 
 	{
-		sf.inst_escribir_linea_1(t, at);
+		sf.inst_escribir_linea_1(t, at1);
 	
 		//Añadir salto linea
 		at.code.addComment("put_line");
 		at.code.addInst (OpCode.STC, 10);
 		at.code.addInst (OpCode.STC, 13);
 	} 
-	<tSBR> lista_cero_o_mas_exps(at) <tEBR>
+	<tSBR> lista_cero_o_mas_exps(at1) <tEBR>
 	{
-		for(int i = at.listaCode.size() - 1; i >= 0; i--){
-			at.code.addBlock(at.listaCode.get(i));
+		for(int i = at1.listaCode.size() - 1; i >= 0; i--){
+			at.code.addBlock(at1.listaCode.get(i));
 
 		}
 
-		for(int i = 0; i < at.listaCode.size(); i++){
-			for(int j = 0; j < at.listaSize.get(i); j++){
-				if(at.listaTipo.get(i) == Symbol.Types.CHAR || at.listaTipo.get(i) == Symbol.Types.STRING){		
+		for(int i = 0; i < at1.listaCode.size(); i++){
+			for(int j = 0; j < at1.listaSize.get(i); j++){
+				if(at1.listaTipo.get(i) == Symbol.Types.CHAR || at1.listaTipo.get(i) == Symbol.Types.STRING){		
 					at.code.addInst (OpCode.WRT, 0);
 				} else {
 					at.code.addInst (OpCode.WRT, 1);
@@ -1251,22 +1251,22 @@ void inst_saltar_linea(Attributes at):
 
 void inst_leer(Attributes at): //lista de uno o mas asignables
 {
-	//Attributes at1 = new Attributes(); 
+	Attributes at1 = new Attributes(); 
 	Token t;
 }
 {
-	t = <tGET> <tSBR> lista_una_o_mas_asignable(at) <tEBR>	//get (lista_var);
+	t = <tGET> <tSBR> lista_una_o_mas_asignable(at1) <tEBR>	//get (lista_var);
 	{
-		sf.inst_leer_1(t, at);
+		sf.inst_leer_1(t, at1);
 		
 
-		for(int i = at.listaCode.size() - 1; i >= 0; i--){
-			at.code.addBlock(at.listaCode.get(i));
+		for(int i = at1.listaCode.size() - 1; i >= 0; i--){
+			at.code.addBlock(at1.listaCode.get(i));
 		}
 
 
-		for(int i = 0; i < at.expSize; i++){
-			if(at.listaTipo.get(i) == Symbol.Types.CHAR){	
+		for(int i = 0; i < at1.expSize; i++){
+			if(at1.listaTipo.get(i) == Symbol.Types.CHAR){	
 				at.code.addInst (OpCode.RD, 0);
 			} else {
 				at.code.addInst (OpCode.RD, 1);
@@ -1298,8 +1298,11 @@ void lista_una_o_mas_exps(Attributes at):
 	{    
 		sf.lista_una_o_mas_exps_1(at, at1);
 		
-		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){
+		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del parametro
 			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
+			if(at1.simbolo.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del argumento
+				at.code.addInst(OpCode.DRF);
+			}
 		}
 		else if(at.esLlamada && at1.type == Symbol.Types.ARRAY){
 			at1.arraySize = ((SymbolArray)at1.simbolo).maxInd;
@@ -1328,6 +1331,9 @@ void lista_una_o_mas_exps(Attributes at):
 
 		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){
 			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
+			if(at1.simbolo.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del argumento
+				at.code.addInst(OpCode.DRF);
+			}
 		}
 		else if(at.esLlamada && at1.type == Symbol.Types.ARRAY){
 			at1.arraySize = ((SymbolArray)at1.simbolo).maxInd;
@@ -1473,21 +1479,25 @@ void factor(Attributes at):
 		sf.factor_1(at, at1);
 		at.code.addBlock(at1.code);
 		at.code.addInst(OpCode.NGB);
+		at.expSize=at1.expSize;
 	}//No es ni variable ni componente de vector, ponerlo
 	| <tSBR> expresion(at1) <tEBR> 
 	{
 		sf.factor_2(at, at1);
 		at.code.addBlock(at1.code);
+		at.expSize=at1.expSize;
 	}//Lo mismo
 	| <tI2C> <tSBR> expresion(at1) <tEBR> 
 	{
 		sf.factor_3(at, at1);
 		at.code.addBlock(at1.code);
+		at.expSize=1;
 	}//Lo mismo
 	| <tC2I> <tSBR> expresion(at1) <tEBR> 
 	{
 		sf.factor_4(at, at1);
 		at.code.addBlock(at1.code);
+		at.expSize=1;
 	}//Lo mismo
 	| LOOKAHEAD(2) t = <tID> //Llamada a funcion
 	{
@@ -1500,6 +1510,7 @@ void factor(Attributes at):
 		
 		at.code.addBlock(at1.code);
 		at.code.addOSFInst(CGUtils.memorySpaces[st.level] + 1, st.level - at1.simbolo.nivel, at1.simbolo.label);
+		at.expSize=1;
 	}//Lo mismo 
 	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> 
 	{
@@ -1531,6 +1542,8 @@ void factor(Attributes at):
 		at.code.addInst(OpCode.PLUS);
 		at.code.addInst(OpCode.DRF);
 
+		at.expSize=1;
+
 		
 	}//Es componente del vector no es var
 	| t = <tID> 
@@ -1543,6 +1556,9 @@ void factor(Attributes at):
 		//DRF
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 		at.code.addInst(OpCode.DRF);
+		if(at.simbolo.parClass == Symbol.ParameterClass.REF){
+			at.code.addInst(OpCode.DRF);
+		}
 	
 		at.expSize=1;
 	}
@@ -1557,6 +1573,7 @@ void factor(Attributes at):
 	| t = <tVCHAR> {
 		sf.factor_9(t, at);
 		at.code.addInst (OpCode.STC, (int) at.valChar);
+		at.expSize=1;
 	}
 	| t = <tVSTRING>
 	{
@@ -1565,17 +1582,19 @@ void factor(Attributes at):
 		for (int i = at.valString.length() - 2; i >= 1; i--) {
 			at.code.addInst (OpCode.STC, (int) at.valString.charAt(i));
 		}
-		at.expSize = at.valString.length();
+		at.expSize = at.valString.length() - 2;
 	}
 	| <tTRUE> 
 	{
 		sf.factor_11(at);
 		at.code.addInst (OpCode.STC, 1);
+		at.expSize=1;
 	}
 	| <tFALSE> 
 	{
 		sf.factor_12(at);
-		at.code.addInst (OpCode.STC, 1);
+		at.code.addInst (OpCode.STC, 0);
+		at.expSize=1;
 	}
 }
 

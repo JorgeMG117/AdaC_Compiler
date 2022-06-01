@@ -2,18 +2,31 @@
 procedure factorial is
 --------------------------------------------------------------------------
 
-integer n, j, base[4];
+integer n;
 
 --------------------------------------------------------------------------
-procedure fact (ref integer v[4]) is
+function integer fact (val integer m) is
 --------------------------------------------------------------------------
 begin
-    v[1] := 2 + v[3];
-    -- return fact(p, m);
+    if m = 1 then
+        return 1;
+    else
+        return m * fact (m-1);
+    end
 end
 
 --------------------------------------------------------------------------
 begin
-    base[3] := n;
-    fact (base);
+    put_line ("");
+    put_line ("Calcula k! para k=1..20.");
+    put_line ("");
+    put_line ("Habrá MATH overflow en 13! porque los enteros en la máquina p son de 4 bytes.");
+    put_line ("");
+
+    n := 1;
+    while n <= 20 do
+        put_line (n, "! = ", fact (n));
+        n := n + 1;
+    end
 end
+  
