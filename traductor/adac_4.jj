@@ -27,11 +27,17 @@ import lib.tools.codeGeneration.CodeBlock;
 import lib.tools.codeGeneration.PCodeInstruction.OpCode;
 import lib.tools.codeGeneration.CGUtils;
 
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class adac_4 {
 
 	//tabla de símbolos global
 	static SymbolTable st;
 	static SemanticFunctions sf;
+
+	static String fich;
+	
 
 	private static void initSymbolTable() {
 		boolean b;
@@ -60,6 +66,7 @@ public class adac_4 {
 			}
 			initSymbolTable();
 			sf = new SemanticFunctions(st);
+			fich = args[0];
 			parser.programa(); //invoca símbolo inicial de la gramática
 			//System.out.println(st.toString());
 		} catch (java.io.FileNotFoundException e) {
@@ -404,9 +411,8 @@ void programa () :
 		
 		cprog = new CodeBlock();
 		etiq = CGUtils.newLabel();
-		CGUtils.memorySpaces[st.level] = 2; //ojo esta inicializacion
+		CGUtils.memorySpaces[st.level] = 2;
 		cprog.addInst(OpCode.ENP, etiq);
-		//cprog.addCode(cprocfun);
 		cprog.addComment("Comienzo de " + t.image);
 	}
 
@@ -423,12 +429,22 @@ void programa () :
 		cprog.addComment("Fin de "  + t.image);
 		cprog.addInst(OpCode.LVP);
 
-		System.out.println(cprog.toString());
+		if(ErrorSemantico.getContadorErrores() == 0){
+			try {
+				int i = fich.lastIndexOf('.');
+				String name = fich.substring(0,i);
+				FileWriter myWriter = new FileWriter(name + ".pcode");
+				myWriter.write(cprog.toString());
+				myWriter.close();
+				
+			}
+			catch (Exception e) {
+            	e.getStackTrace();
+        	}
+			System.out.println("Compilacion finalizada. Se ha generado el fichero " + name + ".pcode");
+		}
 		
-		/*System.out.println("******************");
-		System.out.println("Procesando " + at1.simbolo.name);
-		System.out.println("******************");
-		System.out.println(st.toString());*/
+		
 	}
 	
 }
@@ -437,21 +453,10 @@ void programa () :
 void declaracion_variables():
 {
 	Attributes at1 = new Attributes();
-	//at1.parClass = Symbol.ParameterClass.NONE;//Constructor del atributes!!
+	
 }
 {
 	( declaracion(at1) <tPC> )*	
-	//meter variables en la tabla
-	/*{//Mejor meter en tabla de simbolos en declaracion!!
-		for (int i=0;i<at1.parList.size();i++) {
-			try{
-				st.insertSymbol(at1.parList.get(i));
-			}	
-			catch (AlreadyDefinedSymbolException e) {
-				ErrorSemantico.deteccion(e, token); //DE DONDE SACAMOS EL TOKEN????
-			}
-		}
-	}*/
 }
 
 //tipo_variable() lista_vars()
@@ -461,7 +466,7 @@ void declaracion(Attributes at):
 }
 {
 	at.type = tipo_variable() 
-	lista_vars(at)//Opcion1: Meter aqui los simbolos en la tabla, sintetizar lista de ids !!
+	lista_vars(at)
 	
 }
 
@@ -498,10 +503,9 @@ void lista_vars(Attributes at):
 	<tID> <tISQBR> <tVINT> <tESQBR>
 	| <tID>
 */
-void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en tabla se simbolos !!
+void variable(Attributes at):
 {
 	Token t1, t2;
-	//Attributes at1 = new Attributes();
 	Symbol s = null;
 }
 {
@@ -520,7 +524,7 @@ void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en ta
 				st.insertSymbol(s);
 			}	
 			catch (AlreadyDefinedSymbolException e) {
-				ErrorSemantico.deteccion(e, t1); //DE DONDE SACAMOS EL TOKEN????
+				ErrorSemantico.deteccion(e, t1);
 			}
 		} else{at.parList.add(s);}
 		
@@ -534,10 +538,9 @@ void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en ta
 			else if(at.type == Symbol.Types.CHAR){
 				s = new SymbolChar(t1.image, at.parClass);
 			}
-			else{ //tp == Symbol.Types.BOOL
+			else{ 
 				s = new SymbolBool(t1.image, at.parClass);
 			}
-			//System.out.println(s.toString());
 			if(at.parClass == Symbol.ParameterClass.NONE){
 				CGUtils.memorySpaces[st.level]++;
 				s.dir = CGUtils.memorySpaces[st.level];
@@ -545,7 +548,7 @@ void variable(Attributes at)://Opcon2: pasar tipo a variable y meter a qui en ta
 					st.insertSymbol(s);
 				}	
 				catch (AlreadyDefinedSymbolException e) {
-					ErrorSemantico.deteccion(e, t1); //DE DONDE SACAMOS EL TOKEN????
+					ErrorSemantico.deteccion(e, t1); 
 				}
 			} else{at.parList.add(s);}
 			
@@ -566,7 +569,6 @@ void declaracion_procs_funcs(Attributes at):
 void declaracion_proc_func(Attributes at):
 {
 	
-	//Attributes at1 = new Attributes();
 	Token t1;
 	String etiq;
 }
@@ -582,16 +584,12 @@ void declaracion_proc_func(Attributes at):
 	}
 
 	declaracion_variables()
-	declaracion_procs_funcs(at) //Ojito
+	declaracion_procs_funcs(at)
 	{
 		at.code.addLabel(etiq);
 	}
 	bloque_sentencias(at)
 	{
-		/*System.out.println("******************");
-		System.out.println("Procesando " + at1.simbolo.name);
-		System.out.println("******************");
-		System.out.println(st.toString());*/
 		at.code.addInst(OpCode.CSF);
 		st.removeBlock();
 	}
@@ -604,25 +602,6 @@ declaracion_variables()
 declaracion_procs_funcs()
 bloque_sentencias()
 */
-// void declaracion_proc_func2(Attributes at, Token t):
-// {
-	
-// }
-// {
-// 	cabecera_proc_func(at, t)
-// 	declaracion_variables()
-// 	declaracion_procs_funcs() //Ojito
-// 	bloque_sentencias(at)
-// 	{
-// 		System.out.println("******************");
-// 		System.out.println("Procesando " + at.simbolo.name);
-// 		System.out.println("******************");
-// 		System.out.println(st.toString());
-// 		st.removeBlock();
-// 	}
-// }
-
-//<tID> <tSBR> (argumentos_proc_func())? <tEBR> <tIS>
 void cabecera_proc(Attributes at, Token t):
 {
 	Attributes at1 = new Attributes();
@@ -634,7 +613,6 @@ void cabecera_proc(Attributes at, Token t):
 	<tEBR> 
 	<tIS>
 	{
-		//at.nombre = t.image;
 		try{
 			s = new SymbolProcedure(t.image, at1.parList) ;
 			s.label = CGUtils.newLabel();
@@ -642,7 +620,7 @@ void cabecera_proc(Attributes at, Token t):
 			at.code.addLabel(s.label);
 		}
 		catch (AlreadyDefinedSymbolException e) {
-			ErrorSemantico.deteccion(e, t); //aqui un token??
+			ErrorSemantico.deteccion(e, t); 
 		}
 		
 		at.simbolo = s;
@@ -664,7 +642,7 @@ void cabecera_proc(Attributes at, Token t):
 				st.insertSymbol(at1.parList.get(i));			
 			}
 			catch (AlreadyDefinedSymbolException e) {
-				//ErrorSemantico.deteccion(e, t1); //HABRIA QUE PONER ID DE ARGS????
+				ErrorSemantico.deteccion(e, t); 
 			}
 		}
 
@@ -703,7 +681,7 @@ void cabecera_func(Attributes at, Token t):
 			at.code.addLabel(s.label);
 		}
 		catch (AlreadyDefinedSymbolException e) {
-			ErrorSemantico.deteccion(e, t); //aqui un token??
+			ErrorSemantico.deteccion(e, t);
 		}
 		
 		at.simbolo = s;
@@ -725,7 +703,7 @@ void cabecera_func(Attributes at, Token t):
 				st.insertSymbol(at1.parList.get(i));			
 			}
 			catch (AlreadyDefinedSymbolException e) {
-				//ErrorSemantico.deteccion(e, t1); //HABRIA QUE PONER ID DE ARGS????
+				ErrorSemantico.deteccion(e, t);
 			}
 		}
 
@@ -769,8 +747,6 @@ void argumentos_proc_func(Attributes at1):
 	declaracion(at1))*
 }
 
-
-//...
 void bloque_sentencias(Attributes at):
 {
 
@@ -783,7 +759,7 @@ void bloque_sentencias(Attributes at):
 
 void instruccion(Attributes at):
 {
-	//Attributes at1 = new Attributes();
+	
 }
 {
 	try{
@@ -802,12 +778,6 @@ void instruccion(Attributes at):
 		conjSinc.add(tPC);
 		recuperacionPanico(e.currentToken.next, conjSinc);
 	}
-	
-	/*{
-		at.listaSize.clear();
-		at.listaTipo.clear();
-		at.listaCode.clear();
-	}*/
 }
 
 //<tID> <tSBR> lista_cero_o_mas_exps(t) <tEBR>
@@ -818,7 +788,7 @@ void inst_invoc_proc(Attributes at):
 	at1.indice = 0;
 }
 {
-	//funcion( )
+	//procedimiento( )
 	t = <tID> 
 	{
 		sf.inst_invoc_proc_1(t, at1);
@@ -829,8 +799,6 @@ void inst_invoc_proc(Attributes at):
 		
 		sf.inst_invoc_proc_2(at1);
 		at.code.addBlock(at1.code);
-		//at1.esLlamada = false;
-		//En at1 tendremos lista de argumentos, apilamos
 		at.code.addOSFInst(CGUtils.memorySpaces[st.level] + 1, st.level - at1.simbolo.nivel, at1.simbolo.label);
 	}
 	
@@ -865,15 +833,11 @@ void inst_seleccion(Attributes at):
 			at.code.addInst(OpCode.JMP, etiq2);	
 			at.code.addLabel(etiq);
 		}		
-		//if cond then		  instr
-		//else 	  if cond then		   instr
 		(<tELSE> lista_instrucciones(at))?
 		{at.code.addLabel(etiq2);}
-		//else    instr
+
 		<tEND>
 	} catch (ParseException e) {
-		//Set<Integer> conjSinc = infoParseException(e);
-		//conjSinc.add(tEND);
 		Set<Integer> conjSinc = new HashSet<Integer>();
 		conjSinc.add(tEND);
 		recuperacionPanico(e.currentToken.next, conjSinc);
@@ -887,12 +851,6 @@ void inst_iteracion(Attributes at):
 	String etiq = CGUtils.newLabel(), etiq2 = CGUtils.newLabel();
 }
 {
-	//etiqueta 1
-	//condicion
-	//jump a etiqueta 2
-	//bloque de codigo
-	//jump a etiqueta 1
-	//etiqueta 2
 
 	try {
 		<tWHILE> expresion(at1) 
@@ -913,8 +871,6 @@ void inst_iteracion(Attributes at):
 
 		}
 	} catch (ParseException e) {
-		//Set<Integer> conjSinc = infoParseException(e);
-		//conjSinc.add(tEND);
 		Set<Integer> conjSinc = new HashSet<Integer>();
 		conjSinc.add(tEND);
 		recuperacionPanico(e.currentToken.next, conjSinc);
@@ -927,7 +883,7 @@ void inst_return(Attributes at):
 	Attributes at1 = new Attributes();
 	Token t;
 }
-{//que este en funcion y tipo funcion sea el mismo
+{
 	t = <tRETURN> 
 	expresion(at1) 
 	{
@@ -944,9 +900,6 @@ void inst_return(Attributes at):
 */
 void inst_asignacion(Attributes at):
 {
-	//asinabele esta en la tabla
-	//tiene el tipo correcto
-	//la expresion es del mismo tipo
 	Attributes at1 = new Attributes();
 	Attributes at2 = new Attributes();
 }
@@ -965,7 +918,7 @@ void inst_asignacion(Attributes at):
 
 void lista_una_o_mas_asignable(Attributes at):
 {
-	Attributes at1 = new Attributes();	//para que compile
+	Attributes at1 = new Attributes();
 	at.expSize = 1;
 }
 {
@@ -985,156 +938,22 @@ void lista_una_o_mas_asignable(Attributes at):
 
 
 /*	LOOKAHEAD(2)
-	<tID> <tISQBR> expresion_simple() <tESQBR>	//la posicion de un vector puede venir de una exp_simple
+	<tID> <tISQBR> expresion_simple() <tESQBR>
 	| <tID>*/
 void asignable(Attributes at):
 {
-	//Symbol s = null;
 	Token t;
-	Attributes at1 = new Attributes(); //compilar expresion simpel
-	//SymbolArray s1 = null;
+	Attributes at1 = new Attributes();
 	String etiq, etiq2;
 }
 {
 	LOOKAHEAD(2)
 	t = <tID> 
 	{sf.asignable_1(t, at);}
-	<tISQBR> expresion_simple(at1)  <tESQBR>	//la posicion de un vector puede venir de una exp_simple
+	<tISQBR> expresion_simple(at1)  <tESQBR>
 	{
 		sf.asignable_2(t, at1);
 		at.code.addBlock(at1.code);
-		// at.code.addComment("Comprobando indice vector");
-		// at.code.addInst(OpCode.DUP);
-		// at.code.addInst(OpCode.STC, 0);
-		// at.code.addInst(OpCode.GTE);
-		// etiq = CGUtils.newLabel();
-		// at.code.addInst(OpCode.JMF, etiq);
-		// at.code.addInst(OpCode.DUP);
-		// at.code.addInst(OpCode.STC, at.arraySize);
-		// at.code.addInst(OpCode.LT);
-		// etiq2 = CGUtils.newLabel();
-		// at.code.addInst(OpCode.JMT, etiq2);
-		
-		//at.code.addLabel(etiq);
-		//Comentario si esta mal
-		//at.code.addComment("Mensaje error");
-		
-		/*at.code.addInst(OpCode.STC, 73);
-		at.code.addInst(OpCode.WRT, 0);
-
-		at.code.addInst(OpCode.STC, 110);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 100);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 101);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 120);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 111);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 117);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 116);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 111);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 102);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 98);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 111);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 117);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 110);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 100);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 115);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 102);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 111);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 114);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 97);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 114);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 114);
-		at.code.addInst(OpCode.WRT, 0);
-
-		at.code.addInst(OpCode.STC, 97);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 121);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 34);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 118);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 34);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 105);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 110);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 108);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 105);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 110);
-		at.code.addInst(OpCode.WRT, 0);
-
-		at.code.addInst(OpCode.STC, 101);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 54);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 48);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 58);
-		at.code.addInst(OpCode.WRT, 0);
-
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 105);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 110);
-		at.code.addInst(OpCode.WRT, 0);
-
-		at.code.addInst(OpCode.STC, 100);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 101);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.STC, 120);
-		at.code.addInst(OpCode.WRT, 0);
-
-		at.code.addInst(OpCode.STC, 32);
-		at.code.addInst(OpCode.WRT, 0);
-		at.code.addInst(OpCode.WRT, 1);
-		at.code.addInst(OpCode.LVP);
-
-
-
-		at.code.addLabel(etiq2);*/
 		at.code.addComment("Variable vector asignable " + t.image);
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 		if(at.simbolo.parClass == Symbol.ParameterClass.REF){
@@ -1153,20 +972,19 @@ void asignable(Attributes at):
 	}
 }
 
-//put acepta todo tipo de variables
+
 void inst_escribir(Attributes at):
 {
 	Token t;
 	Attributes at1 = new Attributes();
 	at1.indice = 0;
-	//Integer i = new Integer(0);
-	
+
 }
 {
 	t = <tPUT> {
 		sf.inst_escribir_1(t, at1);
 	} 
-	<tSBR> lista_una_o_mas_exps(at1) <tEBR>	//iguales pero con un salto de linea
+	<tSBR> lista_una_o_mas_exps(at1) <tEBR>	
 	{
 		for(int i = at1.listaCode.size() - 1; i >= 0; i--){
 			at.code.addBlock(at1.listaCode.get(i));
@@ -1185,13 +1003,12 @@ void inst_escribir(Attributes at):
 	}
 }
 
-//put_line acepta todo tipo de variables
-void inst_escribir_linea(Attributes at)://lista 0 a mas expresiones
+
+void inst_escribir_linea(Attributes at):
 {
 	Token t;
 	Attributes at1 = new Attributes();
 	at1.indice = 0;
-	//Integer i = new Integer(0);
 	
 }
 {
@@ -1199,7 +1016,7 @@ void inst_escribir_linea(Attributes at)://lista 0 a mas expresiones
 	{
 		sf.inst_escribir_linea_1(t, at1);
 	
-		//Añadir salto linea
+		
 		at.code.addComment("put_line");
 		at.code.addInst (OpCode.STC, 10);
 		at.code.addInst (OpCode.STC, 13);
@@ -1220,7 +1037,7 @@ void inst_escribir_linea(Attributes at)://lista 0 a mas expresiones
 				}
 			}
 		}
-		//Salto de linea
+		
 		at.code.addInst (OpCode.WRT, 0);
 		at.code.addInst (OpCode.WRT, 0);
 
@@ -1249,13 +1066,13 @@ void inst_saltar_linea(Attributes at):
 }
  
 
-void inst_leer(Attributes at): //lista de uno o mas asignables
+void inst_leer(Attributes at):
 {
 	Attributes at1 = new Attributes(); 
 	Token t;
 }
 {
-	t = <tGET> <tSBR> lista_una_o_mas_asignable(at1) <tEBR>	//get (lista_var);
+	t = <tGET> <tSBR> lista_una_o_mas_asignable(at1) <tEBR>
 	{
 		sf.inst_leer_1(t, at1);
 		
@@ -1276,8 +1093,6 @@ void inst_leer(Attributes at): //lista de uno o mas asignables
 }
 
 
-//... skip_line() generar en c para ver que hace
-
 void lista_cero_o_mas_exps(Attributes at):
 {
 
@@ -1290,7 +1105,6 @@ void lista_cero_o_mas_exps(Attributes at):
 void lista_una_o_mas_exps(Attributes at):
 {
 	Attributes at1 = new Attributes();
-	//at1.code = at.code;
 	at1.esLlamada = at.esLlamada;
 }
 {
@@ -1298,14 +1112,14 @@ void lista_una_o_mas_exps(Attributes at):
 	{    
 		sf.lista_una_o_mas_exps_1(at, at1);
 		
-		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del parametro
-			//at.code.addComment("El parametro es por referencia");
+		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){ 
+			
 			if(at1.simbolo.type == Symbol.Types.ARRAY && !at1.interior.isEmpty()){
-				//at.code.addComment("Aqui");
+				
 				at.code.addBlock(at1.interior);
 			}
 			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
-			if(at1.simbolo.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del argumento
+			if(at1.simbolo.parClass == Symbol.ParameterClass.REF){ 
 				at.code.addInst(OpCode.DRF);
 			}
 			
@@ -1317,7 +1131,7 @@ void lista_una_o_mas_exps(Attributes at):
 		else if(at.esLlamada && at1.type == Symbol.Types.ARRAY){
 			at1.arraySize = ((SymbolArray)at1.simbolo).maxInd;
 			for(int i = 0; i <= at1.arraySize; i++){
-				if(at1.simbolo.parClass == Symbol.ParameterClass.REF){	//Parametro vector val, argumento vector ref
+				if(at1.simbolo.parClass == Symbol.ParameterClass.REF){
 					at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
 					at.code.addInst(OpCode.DRF);
 					at.code.addInst(OpCode.STC, i);
@@ -1335,11 +1149,7 @@ void lista_una_o_mas_exps(Attributes at):
 		}
 		
 
-		//generar srf - drf por cada 
-
-		//at.expSize = at.expSize + at1.expSize;
 		at.listaCode.add(at1.code);
-		//at1.code.clearBlock();
 		at.listaTipo.add(at1.type);
 		at.listaSize.add(at1.expSize);
 		at1 = new Attributes();
@@ -1349,9 +1159,7 @@ void lista_una_o_mas_exps(Attributes at):
 		sf.lista_una_o_mas_exps_1(at, at1);
 
 		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del parametro
-			//at.code.addComment("El parametro es por referencia");
 			if(at1.simbolo.type == Symbol.Types.ARRAY && !at1.interior.isEmpty()){
-				//at.code.addComment("Aqui");
 				at.code.addBlock(at1.interior);
 			}
 			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
@@ -1384,9 +1192,7 @@ void lista_una_o_mas_exps(Attributes at):
 			at.code.addBlock(at1.code);
 		}
 
-		//at.expSize = at.expSize + at1.expSize;
 		at.listaCode.add(at1.code);
-		//at1.code.clearBlock();
 		
 		at.listaTipo.add(at1.type);
 		at.listaSize.add(at1.expSize);
@@ -1514,7 +1320,6 @@ void factor(Attributes at):
 	Token t;
 	Attributes at1 = new Attributes();
 	at1.indice = 0;
-	//Integer i = new Integer(0);
 	String etiq, etiq2;
 }
 {
@@ -1524,25 +1329,25 @@ void factor(Attributes at):
 		at.code.addBlock(at1.code);
 		at.code.addInst(OpCode.NGB);
 		at.expSize=at1.expSize;
-	}//No es ni variable ni componente de vector, ponerlo
+	}
 	| <tSBR> expresion(at1) <tEBR> 
 	{
 		sf.factor_2(at, at1);
 		at.code.addBlock(at1.code);
 		at.expSize=at1.expSize;
-	}//Lo mismo
+	}
 	| <tI2C> <tSBR> expresion(at1) <tEBR> 
 	{
 		sf.factor_3(at, at1);
 		at.code.addBlock(at1.code);
 		at.expSize=1;
-	}//Lo mismo
+	}
 	| <tC2I> <tSBR> expresion(at1) <tEBR> 
 	{
 		sf.factor_4(at, at1);
 		at.code.addBlock(at1.code);
 		at.expSize=1;
-	}//Lo mismo
+	}
 	| LOOKAHEAD(2) t = <tID> //Llamada a funcion
 	{
 		sf.factor_13(t, at1);
@@ -1555,30 +1360,13 @@ void factor(Attributes at):
 		at.code.addBlock(at1.code);
 		at.code.addOSFInst(CGUtils.memorySpaces[st.level] + 1, st.level - at1.simbolo.nivel, at1.simbolo.label);
 		at.expSize=1;
-	}//Lo mismo 
+	}
 	| LOOKAHEAD(2)  t = <tID> <tISQBR> expresion(at1) <tESQBR> 
 	{
 		sf.factor_6(t, at, at1);
 
 		at.interior.addBlock(at1.code);
 		at.code.addBlock(at1.code);
-		/*at.code.addComment("Comprobando indice vector");
-		at.code.addInst(OpCode.DUP);
-		at.code.addInst(OpCode.STC, 0);
-		at.code.addInst(OpCode.GTE);
-		etiq = CGUtils.newLabel();
-		at.code.addInst(OpCode.JMF, etiq);
-		at.code.addInst(OpCode.DUP);
-		at.code.addInst(OpCode.STC, at.arraySize);
-		at.code.addInst(OpCode.LT);
-		etiq2 = CGUtils.newLabel();
-		at.code.addInst(OpCode.JMT, etiq2);
-		
-		at.code.addLabel(etiq);
-		//Comentario si esta mal
-		at.code.addComment("Mensaje error");
-
-		at.code.addLabel(etiq2);*/
 		at.code.addComment("Variable vector factor " + t.image);
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 		if(at.simbolo.parClass == Symbol.ParameterClass.REF){
@@ -1590,15 +1378,13 @@ void factor(Attributes at):
 		at.expSize=1;
 
 		
-	}//Es componente del vector no es var
+	}
 	| t = <tID> 
 	{
 		sf.factor_7(t, at);
 
 		at.code.addComment("coger variable " + t.image);
-		//at.simbolo
-		//SRF  0  3 //Nivel actual en tabla simbolos - nivel simbolo
-		//DRF
+
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 		at.code.addInst(OpCode.DRF);
 		if(at.simbolo.parClass == Symbol.ParameterClass.REF){

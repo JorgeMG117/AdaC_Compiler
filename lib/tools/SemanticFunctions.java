@@ -42,37 +42,36 @@ public class SemanticFunctions {
 	public void inst_invoc_proc_1(Token t, Attributes at1){
 		Symbol s = null;
 		SymbolProcedure p = null;
-		//System.out.println("Hemos entrado");
+	
 		try{
 			s = st.getSymbol(t.image);
 		}
 		catch(SymbolNotFoundException e){
 			ErrorSemantico.deteccion(e, t);
 		}
-		//System.out.println("Hemos salido");
+		
 		if(s.type == Symbol.Types.PROCEDURE){
 			p = (SymbolProcedure) s;
 			at1.simbolo = p;
 		}
 		else{
-			System.out.println("El identificador no es procedimiento");
+			t = new Token();
+			ErrorSemantico.deteccion("El identificador no es procedimiento", t);
 		}
 	}
 
 	public void inst_invoc_proc_2(Attributes at1){
-		//(SymbolProcedure)
-		//((SymbolProcedure) s).parList
-		
-		
 		try{		
-			//System.out.println("Hemos entrado inst_invoc_proc_2");
+			
 			if(((SymbolProcedure) at1.simbolo).parList.size() > at1.indice){
-				System.out.println("El numero de parametros es menor del esperado");
+				Token t = new Token();
+				ErrorSemantico.deteccion("El numero de parametros es menor del esperado", t);
 			}
-			//System.out.println("Hemos salido inst_invoc_proc_2");
+			
 		}
-		catch(Exception e){//O se ha utilizado una funcion como procedimiento
-			System.out.println("No se puede invocar al procedimiento principal o se ha utilizado una funcion como procedimiento");
+		catch(Exception e){
+			Token t = new Token();
+			ErrorSemantico.deteccion("No se puede invocar al procedimiento principal o se ha utilizado una funcion como procedimiento", t);
 		}
 
 	}
@@ -80,28 +79,24 @@ public class SemanticFunctions {
 	//inst_seleccion
 	public void inst_seleccion_1(Attributes at1){
 		if(at1.type != Symbol.Types.BOOL){
-
-			System.out.println("Error, el tipo no la guarda no es booleano");
-			//ErrorSemantico.deteccion("Factor no es de tipo bool", t);
+			Token t = new Token();
+			ErrorSemantico.deteccion("El tipo de la guarda no es booleano", t);
 		}
 	}
 
 	//inst_iteracion
 	public void inst_iteracion_1(Attributes at1){
 		if(at1.type != Symbol.Types.BOOL){
-
-			System.out.println("Error, el tipo no la guarda no es booleano");
-			//ErrorSemantico.deteccion("Factor no es de tipo bool", t);
+			Token t = new Token();
+			ErrorSemantico.deteccion("El tipo de la guarda no es booleano", t);
 		}
 	}
 	
 	//Inst_asignacion
 	public void inst_asignacion_1(Attributes at, Attributes at1){
 		if(at.type != at1.type){
-			//MIRAR ESTO
-
-			System.out.println("Error, el tipo no coincide con el de la variable a asignar.");
-			//ErrorSemantico.deteccion("Factor no es de tipo bool", t);
+			Token t = new Token();
+			ErrorSemantico.deteccion("El tipo no coincide con el de la variable a asignar.", t);
 		}
 	}
 
@@ -145,8 +140,8 @@ public class SemanticFunctions {
 	//Expresion
 	public void expresion_1(Attributes at, Attributes at1){
 		if(at.type != at1.type){
-			System.out.println("Error, expresion_1 no coinciden los tipos");
-			//ErrorSemantico.deteccion("Ambas partes de la expresion no son del mismo tipo", t);
+			Token t = new Token();
+			ErrorSemantico.deteccion("Ambas partes de la expresion no son del mismo tipo", t);
 		}
 		at.type = Symbol.Types.BOOL;
 		at.canBeRef = false;
@@ -155,18 +150,13 @@ public class SemanticFunctions {
 	//Expresion_simple
 	public void expresion_simple_1(Attributes at1){
 		at1.type = Symbol.Types.INT;
-		//como asar el canberef
+		
 	}
 	
 	public void expresion_simple_2(Attributes at, Attributes at1){
 		if(at1.type == Symbol.Types.INT && at.type != Symbol.Types.INT){
-			//Error Semantico
-		
-			System.out.println("ERROR: Tipo de at: " + at.type);
-			System.out.println("ERROR: Tipo de at1: " + at1.type);
-			//System.out.println("Por probar: " + at.simbolo.name);
-			System.out.println("ERROR: Error expresion_simple_2, el tipo no es entero");
-			//ErrorSemantico.deteccion("Error expresion_simple_2, el tipo no es entero", matchedToken);
+			Token t = new Token();
+			ErrorSemantico.deteccion("El tipo no es entero", t);
 		}
 		else{
 			if(at1.type != Symbol.Types.UNDEFINED){
@@ -178,13 +168,14 @@ public class SemanticFunctions {
 	
 	public void expresion_simple_3(Attributes at, Attributes at2, Attributes at3){
 		if(at.type != at2.type || at.type != at3.type){
-			//ErrorSemantico.deteccion("Ambas partes de la expresion no son del mismo tipo", t);
-			System.out.println("Error expresion_simple_3");
+			Token t = new Token();
+			ErrorSemantico.deteccion("Ambas partes de la expresion no son del mismo tipo", t);
+			
 		}
 		at.canBeRef = false;
 	}
 
-	//lista_una_o_mas_exps//mismo numero de param//asignable y variable de tipo vector en referencia
+	//lista_una_o_mas_exps
 	public void lista_una_o_mas_exps_1(Attributes at, Attributes at1){
 
 		if(at.simbolo == null){
@@ -194,74 +185,57 @@ public class SemanticFunctions {
 		if(at.simbolo.name != "put" && at.simbolo.name != "put_line"){
 
 			Symbol s = null;
-			
-			// SymbolFunction f = null;
-			// SymbolProcedure p = null;
-
-			// try{
-			// 	s = st.getSymbol(t.image);
-			// }
-			// catch(SymbolNotFoundException e){
-			// 	ErrorSemantico.deteccion(e, t);
-			// }
-			// if(s.type == Symbol.Types.FUNCTION){
-			// 	f = (SymbolFunction) s;
-			// 	s = f.parList.get(i);
-			// }
-			// else if(s.type == Symbol.Types.PROCEDURE){
-			// 	p = (SymbolProcedure) s;
-			// 	s = p.parList.get(i);
-			// }
-			
-			//System.out.println(s);
-			//((SymbolProcedure) at1.simbolo).parList.size()
 
 			if(at.simbolo.type == Symbol.Types.FUNCTION){
-				//System.out.println("ES un funcion");
 				if(((SymbolFunction) at.simbolo).parList == null) {
-					//System.out.println("No se puede invocar al procedimiento principal");
+					Token t = new Token();
+					ErrorSemantico.deteccion("No se puede invocar al procedimiento principal", t);
 					return;
 				}
 				if(at.indice >= ((SymbolFunction) at.simbolo).parList.size()){
-					System.out.println("Se ha llamado con mas parametros que los que tiene");
+					Token t = new Token();
+					ErrorSemantico.deteccion("Se ha llamado con mas parametros que los que tiene", t);
 				}
 				else{
 					s = ((SymbolFunction) at.simbolo).parList.get(at.indice);
 				}
 			}
 			else if(at.simbolo.type == Symbol.Types.PROCEDURE){
-				//System.out.println("ES un procedure");
+				
 				if(((SymbolProcedure) at.simbolo).parList == null) {
-					//System.out.println("No se puede invocar al procedimiento principal");
+					
 					return;
 				}
 				if(at.indice >= ((SymbolProcedure) at.simbolo).parList.size()){
-					System.out.println("Se ha llamado con mas parametros que los que tiene");
+					Token t = new Token();
+					ErrorSemantico.deteccion("Se ha llamado con mas parametros que los que tiene", t);
 				}
 				else{
 					s = ((SymbolProcedure) at.simbolo).parList.get(at.indice);
 				}
 			}
 			else{
-				System.out.println("No es ni procedimiento, ni función, esta mal");
+				Token t = new Token();
+				ErrorSemantico.deteccion("No es ni procedimiento, ni función", t);
 			}
 			
 
-			//
+			
 			if(at1.type != Symbol.Types.ARRAY && at1.type != Symbol.Types.INT && at1.type != Symbol.Types.CHAR && at1.type != Symbol.Types.BOOL){
-
-				System.out.println("Tipo de at1: " + at1.type);
-				System.out.println("Argumento debe ser int, char o boolean");
+				Token t = new Token();
+				ErrorSemantico.deteccion("Argumento debe ser int, char o boolean", t);
 			}
 
 			if(s != null){	
 				if(s.type != at1.type){
-					System.out.println("El tipo del argumento no coincide con el del parametro");
+					Token t = new Token();
+					ErrorSemantico.deteccion("El tipo del argumento no coincide con el del parametro", t);
 				}
 
-				//
+				
 				if(s.parClass == Symbol.ParameterClass.REF && !at1.canBeRef){
-					System.out.println("Argumento no puede ser una referencia");
+					Token t = new Token();
+					ErrorSemantico.deteccion("Argumento no puede ser una referencia", t);
 				}
 				else{
 					at1.parClass = s.parClass;
@@ -270,13 +244,14 @@ public class SemanticFunctions {
 			
 
 			at.indice++;
-			//System.out.println("Esto es la i: " + at.indice);
+			
 
 		
 		}
 		else{
 			if(at1.type == Symbol.Types.ARRAY){
-				System.out.println("Argumento put o put_line no puede ser un array");
+				Token t = new Token();
+				ErrorSemantico.deteccion("Argumento put o put_line no puede ser un array", t);
 			}
 		}
 	}
@@ -316,7 +291,7 @@ public class SemanticFunctions {
 		Symbol s =  null;
 		try{
 			s = st.getSymbol (t.image);
-			if(s.type != Symbol.Types.ARRAY){//Se puede hace v[], v+1
+			if(s.type != Symbol.Types.ARRAY){
 				at.type = s.type;
 				at.simbolo = s;
 			}
@@ -333,10 +308,9 @@ public class SemanticFunctions {
 	//Termino
 	public void termino_2(Attributes at, Attributes at2, Attributes at3){
 		if(at.type != at2.type || at.type != at3.type){
-			//ErrorSemantico.deteccion("Ambas partes de la expresion no son del mismo tipo", t);
-			System.out.println("Error termino");
+			Token t = new Token();
+			ErrorSemantico.deteccion("Ambas partes de la expresion no son del mismo tipo", t);
 		}
-		//System.out.println("he pasado por el termino"); 
 		at.canBeRef = false;
 	}
 
@@ -347,8 +321,8 @@ public class SemanticFunctions {
 			at.canBeRef = false;
 		}
 		else{
-			//Mensaje error ErrorSemantico
-			//ErrorSemantico.deteccion("Factor no es de tipo bool", t);
+			Token t = new Token();
+			ErrorSemantico.deteccion("Factor no es de tipo bool", t);
 		}	
 	}
 
@@ -364,7 +338,8 @@ public class SemanticFunctions {
 		}
 		else{
 			//Mensaje error ErrorSemantico
-			//ErrorSemantico.deteccion("Parametro de la funcion int2char no es int", t);
+			Token t = new Token();
+			ErrorSemantico.deteccion("Parametro de la funcion int2char no es int", t);
 		}
 	}
 
@@ -375,7 +350,8 @@ public class SemanticFunctions {
 		}
 		else{
 			//Mensaje error ErrorSemantico
-			//ErrorSemantico.deteccion("Parametro de la funcion charToInt no es char", t);
+			Token t = new Token();
+			ErrorSemantico.deteccion("Parametro de la funcion charToInt no es char", t);
 		}
 	}
 
@@ -384,17 +360,14 @@ public class SemanticFunctions {
 		at.canBeRef = false;
 		
 		if(((SymbolFunction) at1.simbolo).parList.size() > at1.indice){
-			System.out.println("El numero de parametros es menor del esperado");
+			Token t = new Token();
+			ErrorSemantico.deteccion("El numero de parametros es menor del esperado", t);
 		}
 	}
 
 	public void factor_6(Token t, Attributes at, Attributes at1){
 		Symbol s =  null;
-		//System.out.println("he pasado por el factor");
-		//Comprobar 
-			//si existe
-			//si es vector el id
-			//si el tipo de at1 es INT
+		
 		try{
 			s = st.getSymbol(t.image);
 			//comprobar que es tipo array
@@ -437,11 +410,12 @@ public class SemanticFunctions {
 	public void factor_8(Token t, Attributes at){
 		try{
 			at.type = Symbol.Types.INT;
-            at.valInt = Integer.parseInt(t.image); //Pasar a entero
+            at.valInt = Integer.parseInt(t.image);
 			at.canBeRef = false;
         }
         catch (NumberFormatException ex){
             ex.printStackTrace();
+			ErrorSemantico.deteccion("El argumento no es un entero", t);
         }
 	}
 
@@ -483,7 +457,7 @@ public class SemanticFunctions {
 			at1.simbolo = f;
 		}
 		else{
-			System.out.println("El identificador no es funcion");
+			ErrorSemantico.deteccion("El identificador no es funcion", t);
 		}
 		
 	}
