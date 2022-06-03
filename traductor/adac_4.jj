@@ -430,9 +430,10 @@ void programa () :
 		cprog.addInst(OpCode.LVP);
 
 		if(ErrorSemantico.getContadorErrores() == 0){
+			String name = "";
 			try {
 				int i = fich.lastIndexOf('.');
-				String name = fich.substring(0,i);
+				name = fich.substring(0,i);
 				FileWriter myWriter = new FileWriter(name + ".pcode");
 				myWriter.write(cprog.toString());
 				myWriter.close();

@@ -1,4 +1,4 @@
-Práctica 3: Analisis semantico de programas adac
+Práctica 4: Generacion de codigo intermedio para adac
 
 Jorge Martinez Gil, 801369
 Hugo Lazaro Zapata, 801758
@@ -17,5 +17,6 @@ Organizacion del proyecto
 un simbolo relaccionado con el atributo que contiene información sobre tipo, nombre, clase de parametro...
 un booleano "canBeRef" que nos indique si el atributo puede ser pasado como referencia.
 -En SemanticFunctions hemos introducido todas las funciones del analisis semántico divididas por funcion del traductor en las que se encuentran. 
-El nombre de las funciones, para ayudar a diferenciarlas, es el nombre de la función en la que se encuentran un numero. 
-
+El nombre de las funciones, para ayudar a diferenciarlas, es el nombre de la función en la que se encuentran y un numero. 
+- La generacion del codigo se ha implementado en el fichero adac_4.jj
+- Los ficheros .pcode se generan en el mismo directorio donde se encuentra el fuente en adac.
