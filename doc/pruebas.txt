@@ -34,3 +34,17 @@ begin
     -- num := 'c';
     pedir_entero(num);
 end
+
+
+procedure q(ref integer i[3])
+is
+begin
+    put(i[1]);
+    i[2] := 5;
+end
+
+procedure r(val integer i[3]; ref integer j[3])
+is
+begin
+    put(i[1], j[1]);
+end

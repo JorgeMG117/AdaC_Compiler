@@ -447,7 +447,7 @@ public class SemanticFunctions {
 
 	public void factor_9(Token t, Attributes at){
 		at.type = Symbol.Types.CHAR;
-		at.valChar = t.image.charAt(0);
+		at.valChar = t.image.charAt(1);
 		at.canBeRef = false;
 	}
 

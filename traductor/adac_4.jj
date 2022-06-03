@@ -1135,7 +1135,7 @@ void asignable(Attributes at):
 
 
 		at.code.addLabel(etiq2);*/
-		at.code.addComment("Variable vector " + t.image);
+		at.code.addComment("Variable vector asignable " + t.image);
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 		if(at.simbolo.parClass == Symbol.ParameterClass.REF){
 			at.code.addInst(OpCode.DRF);
@@ -1299,16 +1299,35 @@ void lista_una_o_mas_exps(Attributes at):
 		sf.lista_una_o_mas_exps_1(at, at1);
 		
 		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del parametro
+			//at.code.addComment("El parametro es por referencia");
+			if(at1.simbolo.type == Symbol.Types.ARRAY && !at1.interior.isEmpty()){
+				//at.code.addComment("Aqui");
+				at.code.addBlock(at1.interior);
+			}
 			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
 			if(at1.simbolo.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del argumento
 				at.code.addInst(OpCode.DRF);
+			}
+			
+			if(at1.simbolo.type == Symbol.Types.ARRAY && !at1.interior.isEmpty()){
+				at.code.addInst(OpCode.PLUS);
+				at1.interior.clearBlock();
 			}
 		}
 		else if(at.esLlamada && at1.type == Symbol.Types.ARRAY){
 			at1.arraySize = ((SymbolArray)at1.simbolo).maxInd;
 			for(int i = 0; i <= at1.arraySize; i++){
-				at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir + i);
-				at.code.addInst(OpCode.DRF);
+				if(at1.simbolo.parClass == Symbol.ParameterClass.REF){	//Parametro vector val, argumento vector ref
+					at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
+					at.code.addInst(OpCode.DRF);
+					at.code.addInst(OpCode.STC, i);
+					at.code.addInst(OpCode.PLUS);
+					at.code.addInst(OpCode.DRF);
+				}
+				else{	//Parametro vector val, argumento vector val
+					at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir + i);
+					at.code.addInst(OpCode.DRF);
+				}
 			}
 		}
 		else if(at.esLlamada){
@@ -1329,17 +1348,36 @@ void lista_una_o_mas_exps(Attributes at):
 	( <tC> expresion(at1) {
 		sf.lista_una_o_mas_exps_1(at, at1);
 
-		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){
+		if(at.esLlamada && at1.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del parametro
+			//at.code.addComment("El parametro es por referencia");
+			if(at1.simbolo.type == Symbol.Types.ARRAY && !at1.interior.isEmpty()){
+				//at.code.addComment("Aqui");
+				at.code.addBlock(at1.interior);
+			}
 			at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
 			if(at1.simbolo.parClass == Symbol.ParameterClass.REF){ //Miramos la clase del argumento
 				at.code.addInst(OpCode.DRF);
+			}
+			
+			if(at1.simbolo.type == Symbol.Types.ARRAY && !at1.interior.isEmpty()){
+				at.code.addInst(OpCode.PLUS);
+				at1.interior.clearBlock();
 			}
 		}
 		else if(at.esLlamada && at1.type == Symbol.Types.ARRAY){
 			at1.arraySize = ((SymbolArray)at1.simbolo).maxInd;
 			for(int i = 0; i <= at1.arraySize; i++){
-				at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir + i);
-				at.code.addInst(OpCode.DRF);
+				if(at1.simbolo.parClass == Symbol.ParameterClass.REF){	//Parametro vector val, argumento vector ref
+					at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir);
+					at.code.addInst(OpCode.DRF);
+					at.code.addInst(OpCode.STC, i);
+					at.code.addInst(OpCode.PLUS);
+					at.code.addInst(OpCode.DRF);
+				}
+				else{	//Parametro vector val, argumento vector val
+					at.code.addInst(OpCode.SRF, st.level - at1.simbolo.nivel, (int)at1.simbolo.dir + i);
+					at.code.addInst(OpCode.DRF);
+				}
 			}
 		}
 		else if(at.esLlamada){
@@ -1370,6 +1408,8 @@ void expresion(Attributes at) :
 
 			at.code.addBlock(at1.code);
 			at.code.addBlock(at2.code);
+			at1.code.clearBlock();
+			at2.code.clearBlock();
 		} 
 	)?
 }  
@@ -1418,6 +1458,8 @@ void expresion_simple(Attributes at):
 
 		at.code.addBlock(at3.code);
 		at.code.addBlock(at2.code);
+		at2.code.clearBlock();
+		at3.code.clearBlock();
 	 }
 	  )*
 }
@@ -1450,6 +1492,8 @@ void termino(Attributes at):
 
 		at.code.addBlock(at3.code);
 		at.code.addBlock(at2.code);
+		at2.code.clearBlock();
+		at3.code.clearBlock();
 	})*
 
 }
@@ -1516,6 +1560,7 @@ void factor(Attributes at):
 	{
 		sf.factor_6(t, at, at1);
 
+		at.interior.addBlock(at1.code);
 		at.code.addBlock(at1.code);
 		/*at.code.addComment("Comprobando indice vector");
 		at.code.addInst(OpCode.DUP);
@@ -1534,7 +1579,7 @@ void factor(Attributes at):
 		at.code.addComment("Mensaje error");
 
 		at.code.addLabel(etiq2);*/
-		at.code.addComment("Variable vector " + t.image);
+		at.code.addComment("Variable vector factor " + t.image);
 		at.code.addInst(OpCode.SRF, st.level - at.simbolo.nivel, (int)at.simbolo.dir);
 		if(at.simbolo.parClass == Symbol.ParameterClass.REF){
 			at.code.addInst(OpCode.DRF);
@@ -1572,6 +1617,7 @@ void factor(Attributes at):
 	}
 	| t = <tVCHAR> {
 		sf.factor_9(t, at);
+		at.code.addComment("Coger caracter " + at.valChar);
 		at.code.addInst (OpCode.STC, (int) at.valChar);
 		at.expSize=1;
 	}

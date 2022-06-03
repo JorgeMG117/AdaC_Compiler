@@ -35,6 +35,7 @@ public class Attributes implements Cloneable {
     public ArrayList<Integer> listaSize;
     public boolean esLlamada;
     public int arraySize;
+    public CodeBlock interior;
     
 
     public Attributes() {
@@ -56,6 +57,7 @@ public class Attributes implements Cloneable {
         listaTipo = new ArrayList<Symbol.Types>();
         listaSize = new ArrayList<Integer>();
         esLlamada = false;
+        interior = new CodeBlock();
     }
 
     public Attributes clone() {
