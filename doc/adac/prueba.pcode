@@ -1,0 +1,35 @@
+  ENP L0
+; --Comienzo de hello
+L0:
+; --put_line
+  STC 10
+  STC 13
+; --coger constante string "Hello World!"
+  STC 33
+  STC 100
+  STC 108
+  STC 114
+  STC 111
+  STC 87
+  STC 32
+  STC 111
+  STC 108
+  STC 108
+  STC 101
+  STC 72
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+  WRT  0
+; --Fin de hello
+  LVP
